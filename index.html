@@ -317,22 +317,21 @@
 
         .panel-link:hover { opacity: 0.6; }
 
-        /* ========== EDITOR PANEL (LEFT SIDE) ========== */
+        /* ========== EDITOR PANEL (LEFT SIDE) - EXCEL STYLE ========== */
         #editor-panel {
             position: fixed;
             left: 10px;
             top: 60px;
-            width: 280px;
+            max-width: calc(100vw - 520px);
             max-height: calc(100vh - 80px);
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border-radius: 12px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
             z-index: 1000;
-            overflow-y: auto;
-            overflow-x: hidden;
+            overflow: auto;
             display: none;
             scrollbar-width: thin;
             scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
@@ -340,6 +339,7 @@
 
         #editor-panel::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
 
         #editor-panel::-webkit-scrollbar-track {
@@ -355,96 +355,115 @@
             display: block;
         }
 
-        .editor-header {
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            font-family: var(--font-headers);
-            font-size: 9px;
+        .editor-table {
+            border-collapse: collapse;
+            font-family: var(--font-body);
+            font-size: 7px;
+        }
+
+        .editor-table th {
+            background: rgba(0, 0, 0, 0.08);
+            padding: 4px 6px;
+            text-align: center;
+            font-weight: normal;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
             position: sticky;
             top: 0;
-            background: rgba(255, 255, 255, 0.95);
             z-index: 10;
+            white-space: nowrap;
         }
 
-        .editor-object-item {
-            padding: 6px 8px;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-            cursor: pointer;
-            transition: background 0.2s;
+        .editor-table th.name-col {
+            text-align: left;
+            min-width: 100px;
+            max-width: 120px;
         }
 
-        .editor-object-item:hover {
-            background: rgba(0, 0, 0, 0.03);
+        .editor-table td {
+            padding: 2px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            text-align: center;
         }
 
-        .editor-object-item.selected {
-            background: rgba(0, 0, 0, 0.08);
-        }
-
-        .editor-object-name {
-            font-family: var(--font-headers);
+        .editor-table td.name-cell {
+            text-align: left;
+            padding: 2px 6px;
             font-size: 7px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            color: #000;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            max-width: 120px;
+            cursor: pointer;
         }
 
-        .editor-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 2px;
+        .editor-table tr:hover {
+            background: rgba(0, 0, 0, 0.03);
         }
 
-        .editor-label {
-            font-family: var(--font-body);
-            font-size: 6px;
-            color: #666;
-            width: 20px;
-            text-transform: uppercase;
+        .editor-table tr.selected {
+            background: rgba(0, 120, 255, 0.1);
         }
 
-        .editor-inputs {
-            display: flex;
-            gap: 2px;
-            flex: 1;
+        .editor-table tr.selected td {
+            border-color: rgba(0, 120, 255, 0.3);
         }
 
-        .editor-input-group {
-            display: flex;
-            align-items: center;
-            gap: 1px;
-        }
-
-        .editor-input-label {
-            font-family: var(--font-body);
-            font-size: 6px;
-            color: #999;
-            width: 8px;
-        }
-
-        .editor-input-label.x-label { color: #e74c3c; }
-        .editor-input-label.y-label { color: #27ae60; }
-        .editor-input-label.z-label { color: #3498db; }
-
-        .editor-input {
-            width: 38px;
+        .editor-table input {
+            width: 40px;
             padding: 2px 3px;
             font-family: var(--font-body);
             font-size: 7px;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            border-radius: 3px;
-            background: white;
+            border: none;
+            background: transparent;
             text-align: right;
         }
 
-        .editor-input:focus {
+        .editor-table input:focus {
             outline: none;
-            border-color: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 120, 255, 0.1);
+        }
+
+        .col-x { background: rgba(231, 76, 60, 0.1); }
+        .col-y { background: rgba(39, 174, 96, 0.1); }
+        .col-z { background: rgba(52, 152, 219, 0.1); }
+        .col-s { background: rgba(155, 89, 182, 0.1); }
+
+        .editor-footer {
+            padding: 6px;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+            position: sticky;
+            bottom: 0;
+            display: flex;
+            gap: 6px;
+        }
+
+        .editor-footer-btn {
+            padding: 4px 10px;
+            font-family: var(--font-headers);
+            font-size: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .editor-footer-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .editor-footer-btn.print-btn {
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            border-color: rgba(0, 0, 0, 0.85);
+        }
+
+        .editor-footer-btn.print-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
         }
 
         /* ========== EDITOR MODE & CAMERA BUTTONS ========== */
@@ -534,10 +553,26 @@
         </div>
     </div>
 
-    <!-- EDITOR PANEL (LEFT SIDE) -->
+    <!-- EDITOR PANEL (LEFT SIDE) - EXCEL STYLE -->
     <div id="editor-panel">
-        <div class="editor-header">SCENE OBJECTS</div>
-        <div id="editor-objects-list"></div>
+        <table class="editor-table">
+            <thead>
+                <tr>
+                    <th class="name-col">NAME</th>
+                    <th class="col-x">X</th>
+                    <th class="col-y">Y</th>
+                    <th class="col-z">Z</th>
+                    <th class="col-x">RX</th>
+                    <th class="col-y">RY</th>
+                    <th class="col-z">RZ</th>
+                    <th class="col-s">S</th>
+                </tr>
+            </thead>
+            <tbody id="editor-table-body"></tbody>
+        </table>
+        <div class="editor-footer">
+            <button class="editor-footer-btn print-btn" onclick="printEditorData()">PRINT</button>
+        </div>
     </div>
 
     <div id="scene-container"></div>
@@ -1469,6 +1504,15 @@
         let currentCameraMode = 1;
         let savedCameraState = null;
 
+        // Camera 2 - Perspective fixed position with 360 rotation
+        let camera2 = null;
+        let controls2 = null;
+
+        // Undo/Redo system
+        let undoStack = [];
+        let redoStack = [];
+        const MAX_UNDO_STEPS = 50;
+
         async function startEngine() {
             try {
                 const font = new FontFace('Telegrama Render', 'url(https://raw.githubusercontent.com/decentralize-dfw/font/main/vea.ttf)');
@@ -1543,6 +1587,27 @@
                     updateEditorPanelValues();
                 }
             });
+
+            transformControls.addEventListener('mouseDown', () => {
+                if (selectedEditorObject && editorModeActive) {
+                    saveUndoState();
+                }
+            });
+
+            // Camera 2 - Perspective camera for 360 view from fixed point
+            camera2 = new THREE.PerspectiveCamera(60, aspect, 10, 100000);
+            camera2.position.set(0, 200, 0);
+
+            controls2 = new OrbitControls(camera2, renderer.domElement);
+            controls2.enableDamping = true;
+            controls2.dampingFactor = 0.05;
+            controls2.enablePan = false;
+            controls2.enableZoom = false; // Fixed position, no zoom
+            controls2.target.set(0, 200, 100); // Look forward initially
+            controls2.enabled = false; // Disabled until camera 2 is active
+
+            // Add keyboard listener for undo/redo
+            window.addEventListener('keydown', handleKeyDown);
 
             const pmrem = new THREE.PMREMGenerator(renderer);
             new RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', (tex) => {
@@ -1966,19 +2031,38 @@
             camera.top = maxDim; camera.bottom = -maxDim;
         }
 
-        function onWindowResize() { 
+        function onWindowResize() {
             const aspect = window.innerWidth / window.innerHeight;
             if (camera.isOrthographicCamera) updateOrthoFrustum();
             else camera.aspect = aspect;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight); 
-            composer.setSize(window.innerWidth, window.innerHeight); 
+
+            // Also update camera2
+            if (camera2) {
+                camera2.aspect = aspect;
+                camera2.updateProjectionMatrix();
+            }
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            composer.setSize(window.innerWidth, window.innerHeight);
         }
 
         function animate() {
-            requestAnimationFrame(animate); 
-            controls.update(); 
-            camera.updateProjectionMatrix(); 
+            requestAnimationFrame(animate);
+
+            // Update the correct controls based on camera mode
+            if (currentCameraMode === 2) {
+                controls2.update();
+                camera2.updateProjectionMatrix();
+                // Render with camera 2
+                composer.passes[0].camera = camera2;
+            } else {
+                controls.update();
+                camera.updateProjectionMatrix();
+                // Render with camera 1
+                composer.passes[0].camera = camera;
+            }
+
             if(hoverLabel && currentHoveredObject) {
                 hoverLabel.position.copy(currentHoveredObject.position).y += PARAMS.hoverLabelOffsetY;
             }
@@ -2034,77 +2118,43 @@
         };
 
         function buildEditorPanel() {
-            const container = document.getElementById('editor-objects-list');
-            container.innerHTML = '';
+            const tbody = document.getElementById('editor-table-body');
+            tbody.innerHTML = '';
 
             sceneObjects.forEach((item, index) => {
                 const obj = loadedObjectsMap.get(index);
                 if (!obj) return;
 
                 const name = item.modalContent?.name || `Object ${index + 1}`;
-
-                const itemEl = document.createElement('div');
-                itemEl.className = 'editor-object-item';
-                itemEl.dataset.index = index;
-                itemEl.onclick = () => selectEditorObjectByIndex(index);
-
-                // Get current values
                 const pos = obj.position;
                 const rot = obj.rotation;
                 const scl = obj.scale.x;
 
-                itemEl.innerHTML = `
-                    <div class="editor-object-name">${name}</div>
-                    <div class="editor-row">
-                        <span class="editor-label">LOC</span>
-                        <div class="editor-inputs">
-                            <div class="editor-input-group">
-                                <span class="editor-input-label x-label">X</span>
-                                <input type="number" class="editor-input" data-prop="posX" data-index="${index}" value="${pos.x.toFixed(0)}" step="10">
-                            </div>
-                            <div class="editor-input-group">
-                                <span class="editor-input-label y-label">Y</span>
-                                <input type="number" class="editor-input" data-prop="posY" data-index="${index}" value="${pos.y.toFixed(0)}" step="10">
-                            </div>
-                            <div class="editor-input-group">
-                                <span class="editor-input-label z-label">Z</span>
-                                <input type="number" class="editor-input" data-prop="posZ" data-index="${index}" value="${pos.z.toFixed(0)}" step="10">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="editor-row">
-                        <span class="editor-label">ROT</span>
-                        <div class="editor-inputs">
-                            <div class="editor-input-group">
-                                <span class="editor-input-label x-label">X</span>
-                                <input type="number" class="editor-input" data-prop="rotX" data-index="${index}" value="${(rot.x * 180 / Math.PI).toFixed(0)}" step="5">
-                            </div>
-                            <div class="editor-input-group">
-                                <span class="editor-input-label y-label">Y</span>
-                                <input type="number" class="editor-input" data-prop="rotY" data-index="${index}" value="${(rot.y * 180 / Math.PI).toFixed(0)}" step="5">
-                            </div>
-                            <div class="editor-input-group">
-                                <span class="editor-input-label z-label">Z</span>
-                                <input type="number" class="editor-input" data-prop="rotZ" data-index="${index}" value="${(rot.z * 180 / Math.PI).toFixed(0)}" step="5">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="editor-row">
-                        <span class="editor-label">SCL</span>
-                        <div class="editor-inputs">
-                            <div class="editor-input-group">
-                                <span class="editor-input-label" style="color: #9b59b6;">S</span>
-                                <input type="number" class="editor-input" data-prop="scale" data-index="${index}" value="${scl.toFixed(0)}" step="10" style="width: 50px;">
-                            </div>
-                        </div>
-                    </div>
+                const tr = document.createElement('tr');
+                tr.dataset.index = index;
+                tr.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        selectEditorObjectByIndex(index);
+                    }
+                };
+
+                tr.innerHTML = `
+                    <td class="name-cell" title="${name}">${name}</td>
+                    <td class="col-x"><input type="number" data-prop="posX" data-index="${index}" value="${pos.x.toFixed(0)}" step="10"></td>
+                    <td class="col-y"><input type="number" data-prop="posY" data-index="${index}" value="${pos.y.toFixed(0)}" step="10"></td>
+                    <td class="col-z"><input type="number" data-prop="posZ" data-index="${index}" value="${pos.z.toFixed(0)}" step="10"></td>
+                    <td class="col-x"><input type="number" data-prop="rotX" data-index="${index}" value="${(rot.x * 180 / Math.PI).toFixed(0)}" step="5"></td>
+                    <td class="col-y"><input type="number" data-prop="rotY" data-index="${index}" value="${(rot.y * 180 / Math.PI).toFixed(0)}" step="5"></td>
+                    <td class="col-z"><input type="number" data-prop="rotZ" data-index="${index}" value="${(rot.z * 180 / Math.PI).toFixed(0)}" step="5"></td>
+                    <td class="col-s"><input type="number" data-prop="scale" data-index="${index}" value="${scl.toFixed(0)}" step="10"></td>
                 `;
 
-                container.appendChild(itemEl);
+                tbody.appendChild(tr);
             });
 
             // Add event listeners to all inputs
-            container.querySelectorAll('.editor-input').forEach(input => {
+            tbody.querySelectorAll('input').forEach(input => {
+                input.addEventListener('focus', () => saveUndoState());
                 input.addEventListener('change', handleEditorInputChange);
                 input.addEventListener('input', handleEditorInputChange);
             });
@@ -2143,11 +2193,11 @@
         function selectEditorObject(obj) {
             selectedEditorObject = obj;
 
-            // Update visual selection in panel
-            document.querySelectorAll('.editor-object-item').forEach(item => {
-                item.classList.remove('selected');
-                if (parseInt(item.dataset.index) === obj.userData.sceneObjectIndex) {
-                    item.classList.add('selected');
+            // Update visual selection in panel (table rows)
+            document.querySelectorAll('#editor-table-body tr').forEach(row => {
+                row.classList.remove('selected');
+                if (parseInt(row.dataset.index) === obj.userData.sceneObjectIndex) {
+                    row.classList.add('selected');
                 }
             });
 
@@ -2166,7 +2216,7 @@
             const scl = selectedEditorObject.scale.x;
 
             // Find inputs for this object and update their values
-            const inputs = document.querySelectorAll(`.editor-input[data-index="${index}"]`);
+            const inputs = document.querySelectorAll(`#editor-table-body input[data-index="${index}"]`);
             inputs.forEach(input => {
                 const prop = input.dataset.prop;
                 let value;
@@ -2198,40 +2248,48 @@
                 btnCam1.classList.add('active');
                 btnCam2.classList.remove('active');
 
-                // Restore saved camera state
-                if (savedCameraState) {
-                    camera.position.copy(savedCameraState.position);
-                    controls.target.copy(savedCameraState.target);
-                    if (camera.isOrthographicCamera) {
-                        camera.zoom = savedCameraState.zoom;
-                    }
-                    camera.updateProjectionMatrix();
-                    controls.update();
+                // Disable camera 2 controls, enable camera 1 controls
+                controls2.enabled = false;
+                controls.enabled = true;
+
+                // Update transform controls to use camera 1
+                if (transformControls) {
+                    transformControls.camera = camera;
                 }
+
                 currentCameraMode = 1;
             } else if (mode === 2) {
                 btnCam1.classList.remove('active');
                 btnCam2.classList.add('active');
 
-                // Save current camera state before switching
-                if (currentCameraMode === 1) {
-                    savedCameraState = {
-                        position: camera.position.clone(),
-                        target: controls.target.clone(),
-                        zoom: camera.zoom
-                    };
-                }
+                // Disable camera 1 controls, enable camera 2 controls
+                controls.enabled = false;
+                controls2.enabled = true;
 
-                // Set camera at 0,0 at 2 meters height, looking at 0, 100 at 2 meters height
-                // Note: In this scene, Y is up, so 2 meters = 200 units (based on scale)
-                camera.position.set(0, 200, 0);
-                controls.target.set(0, 200, 10000);
-                camera.updateProjectionMatrix();
-                controls.update();
+                // Reset camera 2 to fixed position (perspective, 360 rotation only)
+                camera2.position.set(0, 200, 0);
+                controls2.target.set(0, 200, 100);
+                camera2.updateProjectionMatrix();
+                controls2.update();
+
+                // Update transform controls to use camera 2
+                if (transformControls) {
+                    transformControls.camera = camera2;
+                }
 
                 currentCameraMode = 2;
             }
         };
+
+        // Get active camera based on mode
+        function getActiveCamera() {
+            return currentCameraMode === 2 ? camera2 : camera;
+        }
+
+        // Get active controls based on mode
+        function getActiveControls() {
+            return currentCameraMode === 2 ? controls2 : controls;
+        }
 
         // Handle click in editor mode to select objects
         function handleEditorClick(e) {
@@ -2239,7 +2297,8 @@
 
             mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
             mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
+            const activeCamera = getActiveCamera();
+            raycaster.setFromCamera(mouse, activeCamera);
 
             const hits = raycaster.intersectObjects(clickableObjects, true);
             if (hits.length > 0) {
@@ -2248,6 +2307,131 @@
                 if (obj.userData.sceneObjectIndex !== undefined) {
                     selectEditorObject(obj);
                 }
+            }
+        }
+
+        // ========== PRINT FUNCTION ==========
+
+        window.printEditorData = function() {
+            let output = "NAME\tX\tY\tZ\tRX\tRY\tRZ\tS\n";
+
+            sceneObjects.forEach((item, index) => {
+                const obj = loadedObjectsMap.get(index);
+                if (!obj) return;
+
+                const name = item.modalContent?.name || `Object ${index + 1}`;
+                const pos = obj.position;
+                const rot = obj.rotation;
+                const scl = obj.scale.x;
+
+                output += `${name}\t${pos.x.toFixed(0)}\t${pos.y.toFixed(0)}\t${pos.z.toFixed(0)}\t`;
+                output += `${(rot.x * 180 / Math.PI).toFixed(0)}\t${(rot.y * 180 / Math.PI).toFixed(0)}\t${(rot.z * 180 / Math.PI).toFixed(0)}\t`;
+                output += `${scl.toFixed(0)}\n`;
+            });
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(output).then(() => {
+                alert('Data copied to clipboard!\nPaste into Excel or any spreadsheet.');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                // Fallback: show in console
+                console.log(output);
+                alert('Copy failed. Check console for data.');
+            });
+        };
+
+        // ========== UNDO/REDO SYSTEM ==========
+
+        function saveUndoState() {
+            const state = {};
+            loadedObjectsMap.forEach((obj, index) => {
+                state[index] = {
+                    position: obj.position.clone(),
+                    rotation: obj.rotation.clone(),
+                    scale: obj.scale.x
+                };
+            });
+
+            undoStack.push(state);
+            if (undoStack.length > MAX_UNDO_STEPS) {
+                undoStack.shift();
+            }
+
+            // Clear redo stack on new action
+            redoStack = [];
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+
+            // Save current state to redo stack
+            const currentState = {};
+            loadedObjectsMap.forEach((obj, index) => {
+                currentState[index] = {
+                    position: obj.position.clone(),
+                    rotation: obj.rotation.clone(),
+                    scale: obj.scale.x
+                };
+            });
+            redoStack.push(currentState);
+
+            // Restore previous state
+            const prevState = undoStack.pop();
+            applyState(prevState);
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+
+            // Save current state to undo stack
+            const currentState = {};
+            loadedObjectsMap.forEach((obj, index) => {
+                currentState[index] = {
+                    position: obj.position.clone(),
+                    rotation: obj.rotation.clone(),
+                    scale: obj.scale.x
+                };
+            });
+            undoStack.push(currentState);
+
+            // Restore redo state
+            const nextState = redoStack.pop();
+            applyState(nextState);
+        }
+
+        function applyState(state) {
+            for (const index in state) {
+                const obj = loadedObjectsMap.get(parseInt(index));
+                if (obj) {
+                    obj.position.copy(state[index].position);
+                    obj.rotation.copy(state[index].rotation);
+                    obj.scale.setScalar(state[index].scale);
+                    obj.userData.originalPosition = obj.position.clone();
+                }
+            }
+
+            // Update panel values
+            buildEditorPanel();
+
+            // Re-select current object if any
+            if (selectedEditorObject) {
+                selectEditorObject(selectedEditorObject);
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (!editorModeActive) return;
+
+            // Ctrl+Z for undo
+            if (e.ctrlKey && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                undo();
+            }
+
+            // Ctrl+Y or Ctrl+Shift+Z for redo
+            if ((e.ctrlKey && e.key === 'y') || (e.ctrlKey && e.shiftKey && e.key === 'z')) {
+                e.preventDefault();
+                redo();
             }
         }
     </script>
