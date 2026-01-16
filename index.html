@@ -466,6 +466,113 @@
             background: rgba(0, 0, 0, 0.7);
         }
 
+        /* Lock icon in table */
+        .lock-cell {
+            width: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .lock-icon {
+            font-size: 10px;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+
+        .lock-icon:hover {
+            opacity: 0.8;
+        }
+
+        .lock-icon.locked {
+            opacity: 1;
+            color: #e74c3c;
+        }
+
+        .editor-table tr.locked {
+            opacity: 0.5;
+        }
+
+        .editor-table tr.locked td {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        /* Transform mode buttons */
+        .transform-group {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .transform-btn {
+            padding: 4px 8px;
+            font-family: var(--font-headers);
+            font-size: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            color: #000;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+        }
+
+        .transform-btn.active {
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+        }
+
+        /* Camera parameters panel */
+        #camera-params {
+            position: fixed;
+            top: 50px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 8px 10px;
+            z-index: 999;
+            display: none;
+            font-family: var(--font-body);
+            font-size: 8px;
+        }
+
+        #camera-params.open {
+            display: block;
+        }
+
+        .cam-param-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .cam-param-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .cam-param-label {
+            width: 30px;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .cam-param-input {
+            width: 50px;
+            padding: 2px 4px;
+            font-family: var(--font-body);
+            font-size: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .cam-param-input:focus {
+            outline: none;
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
         /* ========== EDITOR MODE & CAMERA BUTTONS ========== */
         .editor-btn {
             padding: 6px 12px;
@@ -539,17 +646,43 @@
         <div class="loader-bar-container"><div class="loader-bar"></div></div>
     </div>
 
-    <!-- MODLAR SADECE MEDIUM VE HIGH -->
+    <!-- GRAPHICS MODES: LOW, MEDIUM, HIGH -->
     <div id="graphics-switcher">
         <span class="graphics-label">graphics</span>
         <div class="toggle-group">
+            <button class="toggle-btn" id="btn-low" onclick="handlePresetSelection('low')">LOW</button>
             <button class="toggle-btn active" id="btn-mid" onclick="handlePresetSelection('mid')">MEDIUM</button>
             <button class="toggle-btn" id="btn-high" onclick="handlePresetSelection('high')">HIGH</button>
         </div>
         <button class="editor-btn" id="btn-editor" onclick="toggleEditorMode()">EDITOR</button>
+        <div class="transform-group" id="transform-group" style="display: none;">
+            <button class="transform-btn active" id="btn-translate" onclick="setTransformMode('translate')">T</button>
+            <button class="transform-btn" id="btn-rotate" onclick="setTransformMode('rotate')">R</button>
+            <button class="transform-btn" id="btn-scale" onclick="setTransformMode('scale')">S</button>
+        </div>
         <div class="camera-group" id="camera-group" style="display: none;">
             <button class="camera-btn active" id="btn-cam1" onclick="switchCamera(1)">1</button>
             <button class="camera-btn" id="btn-cam2" onclick="switchCamera(2)">2</button>
+        </div>
+    </div>
+
+    <!-- CAMERA PARAMETERS PANEL -->
+    <div id="camera-params">
+        <div class="cam-param-row">
+            <span class="cam-param-label">FOV</span>
+            <input type="number" class="cam-param-input" id="cam-fov" value="60" min="10" max="120" step="5" onchange="updateCameraFOV(this.value)">
+        </div>
+        <div class="cam-param-row">
+            <span class="cam-param-label">X</span>
+            <input type="number" class="cam-param-input" id="cam-pos-x" value="0" step="100" onchange="updateCameraPosition()">
+        </div>
+        <div class="cam-param-row">
+            <span class="cam-param-label">Y</span>
+            <input type="number" class="cam-param-input" id="cam-pos-y" value="200" step="100" onchange="updateCameraPosition()">
+        </div>
+        <div class="cam-param-row">
+            <span class="cam-param-label">Z</span>
+            <input type="number" class="cam-param-input" id="cam-pos-z" value="0" step="100" onchange="updateCameraPosition()">
         </div>
     </div>
 
@@ -558,6 +691,7 @@
         <table class="editor-table">
             <thead>
                 <tr>
+                    <th style="width:20px;"></th>
                     <th class="name-col">NAME</th>
                     <th class="col-x">X</th>
                     <th class="col-y">Y</th>
@@ -1503,6 +1637,8 @@
         let loadedObjectsMap = new Map(); // Maps sceneObject index to THREE.Object3D
         let currentCameraMode = 1;
         let savedCameraState = null;
+        let currentTransformMode = 'translate';
+        const lockedObjects = new Set(); // Locked object indices
 
         // Camera 2 - Perspective fixed position with 360 rotation
         let camera2 = null;
@@ -1512,6 +1648,9 @@
         let undoStack = [];
         let redoStack = [];
         const MAX_UNDO_STEPS = 50;
+
+        // Original materials backup for LOW mode
+        let originalMaterials = new Map();
 
         async function startEngine() {
             try {
@@ -1684,28 +1823,87 @@
         window.applyLightingPreset = function(level) {
             if (!bloomPass || !renderer) return;
 
+            const btnLow = document.getElementById('btn-low');
             const btnMid = document.getElementById('btn-mid');
             const btnHigh = document.getElementById('btn-high');
 
-            [btnMid, btnHigh].forEach(b => b?.classList.remove('active'));
+            [btnLow, btnMid, btnHigh].forEach(b => b?.classList.remove('active'));
 
-            if (level === 'mid') {
+            if (level === 'low') {
+                btnLow.classList.add('active');
+                bloomPass.enabled = false;
+                renderer.shadowMap.enabled = false;
+                renderer.toneMappingExposure = 1.0;
+                renderer.toneMapping = THREE.NoToneMapping;
+                scene.environment = null;
+
+                // Apply flat/unlit materials
+                applyLowModeMaterials(true);
+            }
+            else if (level === 'mid') {
                 btnMid.classList.add('active');
                 bloomPass.enabled = true;
-                bloomPass.strength = 0.05; 
+                bloomPass.strength = 0.05;
                 renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFShadowMap; 
-                renderer.toneMappingExposure = 0.75; // Siyahları derinleştirmek için düşürüldü
-            } 
+                renderer.shadowMap.type = THREE.PCFShadowMap;
+                renderer.toneMappingExposure = 0.75;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                scene.environment = globalEnvMap;
+
+                // Restore original materials
+                applyLowModeMaterials(false);
+            }
             else if (level === 'high') {
                 btnHigh.classList.add('active');
                 bloomPass.enabled = true;
                 bloomPass.strength = 0.25;
                 renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
-                renderer.toneMappingExposure = 0.75; // Siyahları derinleştirmek için düşürüldü
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                renderer.toneMappingExposure = 0.75;
+                renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                scene.environment = globalEnvMap;
+
+                // Restore original materials
+                applyLowModeMaterials(false);
             }
         };
+
+        function applyLowModeMaterials(enableLow) {
+            clickableObjects.forEach(obj => {
+                obj.traverse(child => {
+                    if (child.isMesh && child.material) {
+                        if (enableLow) {
+                            // Save original material
+                            if (!originalMaterials.has(child.uuid)) {
+                                originalMaterials.set(child.uuid, child.material);
+                            }
+
+                            // Create flat unlit material
+                            const origMat = originalMaterials.get(child.uuid);
+                            let color = new THREE.Color(0x888888);
+
+                            if (origMat.color) {
+                                color = origMat.color.clone();
+                            } else if (origMat.map) {
+                                color = new THREE.Color(0xaaaaaa);
+                            }
+
+                            child.material = new THREE.MeshBasicMaterial({
+                                color: color,
+                                transparent: origMat.transparent || false,
+                                opacity: origMat.opacity || 1,
+                                side: origMat.side || THREE.FrontSide
+                            });
+                        } else {
+                            // Restore original material
+                            if (originalMaterials.has(child.uuid)) {
+                                child.material = originalMaterials.get(child.uuid);
+                            }
+                        }
+                    }
+                });
+            });
+        }
 
         function buildScene(isMobile) {
             const loader = new GLTFLoader();
@@ -2091,21 +2289,37 @@
             const btnEditor = document.getElementById('btn-editor');
             const editorPanel = document.getElementById('editor-panel');
             const cameraGroup = document.getElementById('camera-group');
+            const transformGroup = document.getElementById('transform-group');
+            const cameraParams = document.getElementById('camera-params');
 
             if (editorModeActive) {
                 btnEditor.classList.add('active');
                 editorPanel.classList.add('open');
                 cameraGroup.style.display = 'flex';
+                transformGroup.style.display = 'flex';
+                cameraParams.classList.add('open');
                 transformControls.visible = true;
                 transformControls.enabled = true;
-                // Select first object by default if none selected
+
+                // Update camera params display
+                updateCameraParamsDisplay();
+
+                // Select first unlocked object by default if none selected
                 if (!selectedEditorObject && clickableObjects.length > 0) {
-                    selectEditorObject(clickableObjects[0]);
+                    for (let i = 0; i < clickableObjects.length; i++) {
+                        const idx = clickableObjects[i].userData.sceneObjectIndex;
+                        if (!lockedObjects.has(idx)) {
+                            selectEditorObject(clickableObjects[i]);
+                            break;
+                        }
+                    }
                 }
             } else {
                 btnEditor.classList.remove('active');
                 editorPanel.classList.remove('open');
                 cameraGroup.style.display = 'none';
+                transformGroup.style.display = 'none';
+                cameraParams.classList.remove('open');
                 transformControls.visible = false;
                 transformControls.enabled = false;
                 transformControls.detach();
@@ -2115,6 +2329,55 @@
                     switchCamera(1);
                 }
             }
+        };
+
+        // Set transform mode (translate, rotate, scale)
+        window.setTransformMode = function(mode) {
+            currentTransformMode = mode;
+            transformControls.setMode(mode);
+
+            // Update button states
+            document.getElementById('btn-translate').classList.toggle('active', mode === 'translate');
+            document.getElementById('btn-rotate').classList.toggle('active', mode === 'rotate');
+            document.getElementById('btn-scale').classList.toggle('active', mode === 'scale');
+        };
+
+        // Update camera parameters display
+        function updateCameraParamsDisplay() {
+            const activeCamera = currentCameraMode === 2 ? camera2 : camera;
+            const fovInput = document.getElementById('cam-fov');
+            const posX = document.getElementById('cam-pos-x');
+            const posY = document.getElementById('cam-pos-y');
+            const posZ = document.getElementById('cam-pos-z');
+
+            if (activeCamera.isPerspectiveCamera) {
+                fovInput.value = activeCamera.fov.toFixed(0);
+            }
+            posX.value = activeCamera.position.x.toFixed(0);
+            posY.value = activeCamera.position.y.toFixed(0);
+            posZ.value = activeCamera.position.z.toFixed(0);
+        }
+
+        // Update camera FOV
+        window.updateCameraFOV = function(value) {
+            const fov = parseFloat(value) || 60;
+            const activeCamera = currentCameraMode === 2 ? camera2 : camera;
+
+            if (activeCamera.isPerspectiveCamera) {
+                activeCamera.fov = fov;
+                activeCamera.updateProjectionMatrix();
+            }
+        };
+
+        // Update camera position
+        window.updateCameraPosition = function() {
+            const x = parseFloat(document.getElementById('cam-pos-x').value) || 0;
+            const y = parseFloat(document.getElementById('cam-pos-y').value) || 0;
+            const z = parseFloat(document.getElementById('cam-pos-z').value) || 0;
+
+            const activeCamera = currentCameraMode === 2 ? camera2 : camera;
+            activeCamera.position.set(x, y, z);
+            activeCamera.updateProjectionMatrix();
         };
 
         function buildEditorPanel() {
@@ -2129,24 +2392,28 @@
                 const pos = obj.position;
                 const rot = obj.rotation;
                 const scl = obj.scale.x;
+                const isLocked = lockedObjects.has(index);
 
                 const tr = document.createElement('tr');
                 tr.dataset.index = index;
+                if (isLocked) tr.classList.add('locked');
+
                 tr.onclick = (e) => {
-                    if (e.target.tagName !== 'INPUT') {
+                    if (e.target.tagName !== 'INPUT' && !e.target.classList.contains('lock-icon')) {
                         selectEditorObjectByIndex(index);
                     }
                 };
 
                 tr.innerHTML = `
+                    <td class="lock-cell"><span class="lock-icon ${isLocked ? 'locked' : ''}" data-index="${index}" onclick="toggleLock(${index}, event)">${isLocked ? '🔒' : '🔓'}</span></td>
                     <td class="name-cell" title="${name}">${name}</td>
-                    <td class="col-x"><input type="number" data-prop="posX" data-index="${index}" value="${pos.x.toFixed(0)}" step="10"></td>
-                    <td class="col-y"><input type="number" data-prop="posY" data-index="${index}" value="${pos.y.toFixed(0)}" step="10"></td>
-                    <td class="col-z"><input type="number" data-prop="posZ" data-index="${index}" value="${pos.z.toFixed(0)}" step="10"></td>
-                    <td class="col-x"><input type="number" data-prop="rotX" data-index="${index}" value="${(rot.x * 180 / Math.PI).toFixed(0)}" step="5"></td>
-                    <td class="col-y"><input type="number" data-prop="rotY" data-index="${index}" value="${(rot.y * 180 / Math.PI).toFixed(0)}" step="5"></td>
-                    <td class="col-z"><input type="number" data-prop="rotZ" data-index="${index}" value="${(rot.z * 180 / Math.PI).toFixed(0)}" step="5"></td>
-                    <td class="col-s"><input type="number" data-prop="scale" data-index="${index}" value="${scl.toFixed(0)}" step="10"></td>
+                    <td class="col-x"><input type="number" data-prop="posX" data-index="${index}" value="${pos.x.toFixed(0)}" step="10" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-y"><input type="number" data-prop="posY" data-index="${index}" value="${pos.y.toFixed(0)}" step="10" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-z"><input type="number" data-prop="posZ" data-index="${index}" value="${pos.z.toFixed(0)}" step="10" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-x"><input type="number" data-prop="rotX" data-index="${index}" value="${(rot.x * 180 / Math.PI).toFixed(0)}" step="5" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-y"><input type="number" data-prop="rotY" data-index="${index}" value="${(rot.y * 180 / Math.PI).toFixed(0)}" step="5" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-z"><input type="number" data-prop="rotZ" data-index="${index}" value="${(rot.z * 180 / Math.PI).toFixed(0)}" step="5" ${isLocked ? 'disabled' : ''}></td>
+                    <td class="col-s"><input type="number" data-prop="scale" data-index="${index}" value="${scl.toFixed(0)}" step="10" ${isLocked ? 'disabled' : ''}></td>
                 `;
 
                 tbody.appendChild(tr);
@@ -2159,6 +2426,30 @@
                 input.addEventListener('input', handleEditorInputChange);
             });
         }
+
+        // Toggle lock for an object
+        window.toggleLock = function(index, event) {
+            event.stopPropagation();
+
+            if (lockedObjects.has(index)) {
+                lockedObjects.delete(index);
+            } else {
+                lockedObjects.add(index);
+                // Deselect if currently selected
+                if (selectedEditorObject && selectedEditorObject.userData.sceneObjectIndex === index) {
+                    transformControls.detach();
+                    selectedEditorObject = null;
+                }
+            }
+
+            // Rebuild panel to update UI
+            buildEditorPanel();
+
+            // Re-select current object if any
+            if (selectedEditorObject) {
+                selectEditorObject(selectedEditorObject);
+            }
+        };
 
         function handleEditorInputChange(e) {
             const input = e.target;
@@ -2184,6 +2475,9 @@
         }
 
         function selectEditorObjectByIndex(index) {
+            // Check if object is locked
+            if (lockedObjects.has(index)) return;
+
             const obj = loadedObjectsMap.get(index);
             if (obj) {
                 selectEditorObject(obj);
@@ -2191,6 +2485,9 @@
         }
 
         function selectEditorObject(obj) {
+            // Check if object is locked
+            if (lockedObjects.has(obj.userData.sceneObjectIndex)) return;
+
             selectedEditorObject = obj;
 
             // Update visual selection in panel (table rows)
