@@ -317,6 +317,184 @@
 
         .panel-link:hover { opacity: 0.6; }
 
+        /* ========== EDITOR PANEL (LEFT SIDE) ========== */
+        #editor-panel {
+            position: fixed;
+            left: 10px;
+            top: 60px;
+            width: 280px;
+            max-height: calc(100vh - 80px);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            z-index: 1000;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: none;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+        }
+
+        #editor-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #editor-panel::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #editor-panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 3px;
+        }
+
+        #editor-panel.open {
+            display: block;
+        }
+
+        .editor-header {
+            padding: 8px 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            font-family: var(--font-headers);
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.95);
+            z-index: 10;
+        }
+
+        .editor-object-item {
+            padding: 6px 8px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .editor-object-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .editor-object-item.selected {
+            background: rgba(0, 0, 0, 0.08);
+        }
+
+        .editor-object-name {
+            font-family: var(--font-headers);
+            font-size: 7px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            color: #000;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .editor-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .editor-label {
+            font-family: var(--font-body);
+            font-size: 6px;
+            color: #666;
+            width: 20px;
+            text-transform: uppercase;
+        }
+
+        .editor-inputs {
+            display: flex;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .editor-input-group {
+            display: flex;
+            align-items: center;
+            gap: 1px;
+        }
+
+        .editor-input-label {
+            font-family: var(--font-body);
+            font-size: 6px;
+            color: #999;
+            width: 8px;
+        }
+
+        .editor-input-label.x-label { color: #e74c3c; }
+        .editor-input-label.y-label { color: #27ae60; }
+        .editor-input-label.z-label { color: #3498db; }
+
+        .editor-input {
+            width: 38px;
+            padding: 2px 3px;
+            font-family: var(--font-body);
+            font-size: 7px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 3px;
+            background: white;
+            text-align: right;
+        }
+
+        .editor-input:focus {
+            outline: none;
+            border-color: rgba(0, 0, 0, 0.3);
+        }
+
+        /* ========== EDITOR MODE & CAMERA BUTTONS ========== */
+        .editor-btn {
+            padding: 6px 12px;
+            font-family: var(--font-headers);
+            font-size: 9px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #000;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+        }
+
+        .editor-btn.active {
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            border-color: rgba(0, 0, 0, 0.85);
+        }
+
+        .camera-group {
+            display: flex;
+            gap: 4px;
+            margin-left: 12px;
+        }
+
+        .camera-btn {
+            padding: 6px 10px;
+            font-family: var(--font-headers);
+            font-size: 9px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #000;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+        }
+
+        .camera-btn.active {
+            background: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            border-color: rgba(0, 0, 0, 0.85);
+        }
+
         @media (max-width: 768px) {
             #side-panel { 
                 right: 0; bottom: 0; top: auto;
@@ -344,11 +522,22 @@
 
     <!-- MODLAR SADECE MEDIUM VE HIGH -->
     <div id="graphics-switcher">
-        <span class="graphics-label">graphics 🖳</span>
+        <span class="graphics-label">graphics</span>
         <div class="toggle-group">
             <button class="toggle-btn active" id="btn-mid" onclick="handlePresetSelection('mid')">MEDIUM</button>
             <button class="toggle-btn" id="btn-high" onclick="handlePresetSelection('high')">HIGH</button>
         </div>
+        <button class="editor-btn" id="btn-editor" onclick="toggleEditorMode()">EDITOR</button>
+        <div class="camera-group" id="camera-group" style="display: none;">
+            <button class="camera-btn active" id="btn-cam1" onclick="switchCamera(1)">1</button>
+            <button class="camera-btn" id="btn-cam2" onclick="switchCamera(2)">2</button>
+        </div>
+    </div>
+
+    <!-- EDITOR PANEL (LEFT SIDE) -->
+    <div id="editor-panel">
+        <div class="editor-header">SCENE OBJECTS</div>
+        <div id="editor-objects-list"></div>
     </div>
 
     <div id="scene-container"></div>
@@ -394,6 +583,7 @@
         // import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js'; // TALEP ÜZERİNE PASİF
         import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
         import { FXAAShader } from 'three/addons/shaders/FXAAShader.js';
+        import { TransformControls } from 'three/addons/controls/TransformControls.js';
         import { computeBoundsTree, disposeBoundsTree, acceleratedRaycast } from 'three-mesh-bvh';
 
         THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
@@ -1271,6 +1461,14 @@
         let modalAnimationFrameId;
         const clickableObjects = [];
 
+        // Editor mode variables
+        let editorModeActive = false;
+        let transformControls = null;
+        let selectedEditorObject = null;
+        let loadedObjectsMap = new Map(); // Maps sceneObject index to THREE.Object3D
+        let currentCameraMode = 1;
+        let savedCameraState = null;
+
         async function startEngine() {
             try {
                 const font = new FontFace('Telegrama Render', 'url(https://raw.githubusercontent.com/decentralize-dfw/font/main/vea.ttf)');
@@ -1314,7 +1512,12 @@
             }
             
             scene = new THREE.Scene();
-            scene.background = null; 
+            scene.background = null;
+
+            // Add TransformControls to scene (will be initialized later)
+            setTimeout(() => {
+                if (transformControls) scene.add(transformControls);
+            }, 100); 
 
             controls = new OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
@@ -1322,7 +1525,24 @@
             controls.enablePan = PARAMS.enablePan;
             controls.minDistance = PARAMS.cameraMinDist;
             controls.maxDistance = PARAMS.cameraMaxDist;
-            controls.maxPolarAngle = Math.PI / 2; 
+            controls.maxPolarAngle = Math.PI / 2;
+
+            // Initialize TransformControls for editor mode
+            transformControls = new TransformControls(camera, renderer.domElement);
+            transformControls.setMode('translate');
+            transformControls.setSize(0.8);
+            transformControls.visible = false;
+            transformControls.enabled = false;
+
+            transformControls.addEventListener('dragging-changed', (event) => {
+                controls.enabled = !event.value;
+            });
+
+            transformControls.addEventListener('change', () => {
+                if (selectedEditorObject && editorModeActive) {
+                    updateEditorPanelValues();
+                }
+            });
 
             const pmrem = new THREE.PMREMGenerator(renderer);
             new RGBELoader().load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/equirectangular/venice_sunset_1k.hdr', (tex) => {
@@ -1387,6 +1607,7 @@
             renderer.domElement.addEventListener('mousemove', onMouseMove);
             renderer.domElement.addEventListener('mousedown', onPointerDown);
             renderer.domElement.addEventListener('mouseup', onPointerUp);
+            renderer.domElement.addEventListener('click', handleEditorClick);
         }
 
         // ========== SADECE MEDIUM VE HIGH MODLARI ==========
@@ -1431,7 +1652,7 @@
             const validObjects = sceneObjects.filter(item => !(isMobile && item.showOnMobile === false));
             totalAssets = validObjects.length;
 
-            sceneObjects.forEach(item => {
+            sceneObjects.forEach((item, index) => {
                 if (isMobile && item.showOnMobile === false) return;
 
                 loader.load(item.src, (gltf) => {
@@ -1439,26 +1660,32 @@
                     m.position.set(item.position.x, item.position.y || 0, item.position.z);
                     if (item.rotation) m.rotation.set(item.rotation.x*Math.PI/180, item.rotation.y*Math.PI/180, item.rotation.z*Math.PI/180);
                     m.scale.setScalar(item.scale);
-                    
-                    m.userData = { 
-                        modalContent: item.modalContent, 
+
+                    m.userData = {
+                        modalContent: item.modalContent,
                         clickable: item.clickable !== false,
                         includeInFit: item.includeInFit !== false,
-                        originalPosition: m.position.clone() 
+                        originalPosition: m.position.clone(),
+                        sceneObjectIndex: index,
+                        originalScale: item.scale
                     };
-                    
-                    m.traverse(c => { 
-                        if(c.isMesh) { 
-                            c.castShadow = true; 
-                            c.receiveShadow = true; 
+
+                    m.traverse(c => {
+                        if(c.isMesh) {
+                            c.castShadow = true;
+                            c.receiveShadow = true;
                             if(c.geometry.computeBoundsTree) c.geometry.computeBoundsTree();
-                        } 
+                        }
                     });
-                    
-                    scene.add(m); 
+
+                    scene.add(m);
                     clickableObjects.push(m);
+                    loadedObjectsMap.set(index, m);
                     loadedAssets++; updateLoader();
-                    if(loadedAssets === totalAssets) fitCameraToScene();
+                    if(loadedAssets === totalAssets) {
+                        fitCameraToScene();
+                        buildEditorPanel();
+                    }
                 });
             });
         }
@@ -1474,6 +1701,7 @@
 
         function onMouseMove(e) {
             if (document.getElementById('side-panel').classList.contains('open')) return;
+            if (editorModeActive) return; // Disable hover effects in editor mode
             mouse.x = (e.clientX/window.innerWidth)*2-1;
             mouse.y = -(e.clientY/window.innerHeight)*2+1;
             raycaster.setFromCamera(mouse, camera);
@@ -1481,9 +1709,9 @@
             if(hits.length>0) {
                 let obj = hits[0].object;
                 while(obj.parent && !obj.userData.modalContent) obj = obj.parent;
-                if(obj.userData.modalContent && obj.userData.clickable && currentHoveredObject !== obj) { 
-                    clearHover(); 
-                    applyHover(obj); 
+                if(obj.userData.modalContent && obj.userData.clickable && currentHoveredObject !== obj) {
+                    clearHover();
+                    applyHover(obj);
                 } else if (!obj.userData.clickable) {
                     clearHover();
                 }
@@ -1544,6 +1772,7 @@
         let sX, sY;
         function onPointerDown(e) { sX=e.clientX; sY=e.clientY; }
         function onPointerUp(e) {
+            if (editorModeActive) return; // Don't open panel in editor mode
             if(Math.abs(e.clientX-sX)<5 && Math.abs(e.clientY-sY)<5) {
                 mouse.x = (e.clientX/window.innerWidth)*2-1;
                 mouse.y = -(e.clientY/window.innerHeight)*2+1;
@@ -1763,12 +1992,263 @@
                 const start = {}; for(let k in this.dest) start[k] = this.target[k];
                 const startTime = Date.now();
                 const tick = () => {
-                    const p = Math.min((Date.now()-startTime)/this.dur, 1); 
+                    const p = Math.min((Date.now()-startTime)/this.dur, 1);
                     const e = p*(2-p);
                     for(let k in this.dest) this.target[k] = start[k]+(this.dest[k]-start[k])*e;
                     if(p<1) requestAnimationFrame(tick);
                 }; tick();
             };
+        }
+
+        // ========== EDITOR MODE FUNCTIONS ==========
+
+        window.toggleEditorMode = function() {
+            editorModeActive = !editorModeActive;
+            const btnEditor = document.getElementById('btn-editor');
+            const editorPanel = document.getElementById('editor-panel');
+            const cameraGroup = document.getElementById('camera-group');
+
+            if (editorModeActive) {
+                btnEditor.classList.add('active');
+                editorPanel.classList.add('open');
+                cameraGroup.style.display = 'flex';
+                transformControls.visible = true;
+                transformControls.enabled = true;
+                // Select first object by default if none selected
+                if (!selectedEditorObject && clickableObjects.length > 0) {
+                    selectEditorObject(clickableObjects[0]);
+                }
+            } else {
+                btnEditor.classList.remove('active');
+                editorPanel.classList.remove('open');
+                cameraGroup.style.display = 'none';
+                transformControls.visible = false;
+                transformControls.enabled = false;
+                transformControls.detach();
+                selectedEditorObject = null;
+                // Reset camera to mode 1 if in mode 2
+                if (currentCameraMode === 2) {
+                    switchCamera(1);
+                }
+            }
+        };
+
+        function buildEditorPanel() {
+            const container = document.getElementById('editor-objects-list');
+            container.innerHTML = '';
+
+            sceneObjects.forEach((item, index) => {
+                const obj = loadedObjectsMap.get(index);
+                if (!obj) return;
+
+                const name = item.modalContent?.name || `Object ${index + 1}`;
+
+                const itemEl = document.createElement('div');
+                itemEl.className = 'editor-object-item';
+                itemEl.dataset.index = index;
+                itemEl.onclick = () => selectEditorObjectByIndex(index);
+
+                // Get current values
+                const pos = obj.position;
+                const rot = obj.rotation;
+                const scl = obj.scale.x;
+
+                itemEl.innerHTML = `
+                    <div class="editor-object-name">${name}</div>
+                    <div class="editor-row">
+                        <span class="editor-label">LOC</span>
+                        <div class="editor-inputs">
+                            <div class="editor-input-group">
+                                <span class="editor-input-label x-label">X</span>
+                                <input type="number" class="editor-input" data-prop="posX" data-index="${index}" value="${pos.x.toFixed(0)}" step="10">
+                            </div>
+                            <div class="editor-input-group">
+                                <span class="editor-input-label y-label">Y</span>
+                                <input type="number" class="editor-input" data-prop="posY" data-index="${index}" value="${pos.y.toFixed(0)}" step="10">
+                            </div>
+                            <div class="editor-input-group">
+                                <span class="editor-input-label z-label">Z</span>
+                                <input type="number" class="editor-input" data-prop="posZ" data-index="${index}" value="${pos.z.toFixed(0)}" step="10">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="editor-row">
+                        <span class="editor-label">ROT</span>
+                        <div class="editor-inputs">
+                            <div class="editor-input-group">
+                                <span class="editor-input-label x-label">X</span>
+                                <input type="number" class="editor-input" data-prop="rotX" data-index="${index}" value="${(rot.x * 180 / Math.PI).toFixed(0)}" step="5">
+                            </div>
+                            <div class="editor-input-group">
+                                <span class="editor-input-label y-label">Y</span>
+                                <input type="number" class="editor-input" data-prop="rotY" data-index="${index}" value="${(rot.y * 180 / Math.PI).toFixed(0)}" step="5">
+                            </div>
+                            <div class="editor-input-group">
+                                <span class="editor-input-label z-label">Z</span>
+                                <input type="number" class="editor-input" data-prop="rotZ" data-index="${index}" value="${(rot.z * 180 / Math.PI).toFixed(0)}" step="5">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="editor-row">
+                        <span class="editor-label">SCL</span>
+                        <div class="editor-inputs">
+                            <div class="editor-input-group">
+                                <span class="editor-input-label" style="color: #9b59b6;">S</span>
+                                <input type="number" class="editor-input" data-prop="scale" data-index="${index}" value="${scl.toFixed(0)}" step="10" style="width: 50px;">
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(itemEl);
+            });
+
+            // Add event listeners to all inputs
+            container.querySelectorAll('.editor-input').forEach(input => {
+                input.addEventListener('change', handleEditorInputChange);
+                input.addEventListener('input', handleEditorInputChange);
+            });
+        }
+
+        function handleEditorInputChange(e) {
+            const input = e.target;
+            const index = parseInt(input.dataset.index);
+            const prop = input.dataset.prop;
+            const value = parseFloat(input.value) || 0;
+            const obj = loadedObjectsMap.get(index);
+
+            if (!obj) return;
+
+            switch(prop) {
+                case 'posX': obj.position.x = value; break;
+                case 'posY': obj.position.y = value; break;
+                case 'posZ': obj.position.z = value; break;
+                case 'rotX': obj.rotation.x = value * Math.PI / 180; break;
+                case 'rotY': obj.rotation.y = value * Math.PI / 180; break;
+                case 'rotZ': obj.rotation.z = value * Math.PI / 180; break;
+                case 'scale': obj.scale.setScalar(value); break;
+            }
+
+            // Update original position for hover effect
+            obj.userData.originalPosition = obj.position.clone();
+        }
+
+        function selectEditorObjectByIndex(index) {
+            const obj = loadedObjectsMap.get(index);
+            if (obj) {
+                selectEditorObject(obj);
+            }
+        }
+
+        function selectEditorObject(obj) {
+            selectedEditorObject = obj;
+
+            // Update visual selection in panel
+            document.querySelectorAll('.editor-object-item').forEach(item => {
+                item.classList.remove('selected');
+                if (parseInt(item.dataset.index) === obj.userData.sceneObjectIndex) {
+                    item.classList.add('selected');
+                }
+            });
+
+            // Attach transform controls
+            if (transformControls && editorModeActive) {
+                transformControls.attach(obj);
+            }
+        }
+
+        function updateEditorPanelValues() {
+            if (!selectedEditorObject) return;
+
+            const index = selectedEditorObject.userData.sceneObjectIndex;
+            const pos = selectedEditorObject.position;
+            const rot = selectedEditorObject.rotation;
+            const scl = selectedEditorObject.scale.x;
+
+            // Find inputs for this object and update their values
+            const inputs = document.querySelectorAll(`.editor-input[data-index="${index}"]`);
+            inputs.forEach(input => {
+                const prop = input.dataset.prop;
+                let value;
+                switch(prop) {
+                    case 'posX': value = pos.x.toFixed(0); break;
+                    case 'posY': value = pos.y.toFixed(0); break;
+                    case 'posZ': value = pos.z.toFixed(0); break;
+                    case 'rotX': value = (rot.x * 180 / Math.PI).toFixed(0); break;
+                    case 'rotY': value = (rot.y * 180 / Math.PI).toFixed(0); break;
+                    case 'rotZ': value = (rot.z * 180 / Math.PI).toFixed(0); break;
+                    case 'scale': value = scl.toFixed(0); break;
+                }
+                if (document.activeElement !== input) {
+                    input.value = value;
+                }
+            });
+
+            // Update original position for hover effect
+            selectedEditorObject.userData.originalPosition = selectedEditorObject.position.clone();
+        }
+
+        // ========== CAMERA SWITCHING FUNCTIONS ==========
+
+        window.switchCamera = function(mode) {
+            const btnCam1 = document.getElementById('btn-cam1');
+            const btnCam2 = document.getElementById('btn-cam2');
+
+            if (mode === 1) {
+                btnCam1.classList.add('active');
+                btnCam2.classList.remove('active');
+
+                // Restore saved camera state
+                if (savedCameraState) {
+                    camera.position.copy(savedCameraState.position);
+                    controls.target.copy(savedCameraState.target);
+                    if (camera.isOrthographicCamera) {
+                        camera.zoom = savedCameraState.zoom;
+                    }
+                    camera.updateProjectionMatrix();
+                    controls.update();
+                }
+                currentCameraMode = 1;
+            } else if (mode === 2) {
+                btnCam1.classList.remove('active');
+                btnCam2.classList.add('active');
+
+                // Save current camera state before switching
+                if (currentCameraMode === 1) {
+                    savedCameraState = {
+                        position: camera.position.clone(),
+                        target: controls.target.clone(),
+                        zoom: camera.zoom
+                    };
+                }
+
+                // Set camera at 0,0 at 2 meters height, looking at 0, 100 at 2 meters height
+                // Note: In this scene, Y is up, so 2 meters = 200 units (based on scale)
+                camera.position.set(0, 200, 0);
+                controls.target.set(0, 200, 10000);
+                camera.updateProjectionMatrix();
+                controls.update();
+
+                currentCameraMode = 2;
+            }
+        };
+
+        // Handle click in editor mode to select objects
+        function handleEditorClick(e) {
+            if (!editorModeActive) return;
+
+            mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const hits = raycaster.intersectObjects(clickableObjects, true);
+            if (hits.length > 0) {
+                let obj = hits[0].object;
+                while (obj.parent && !obj.userData.modalContent) obj = obj.parent;
+                if (obj.userData.sceneObjectIndex !== undefined) {
+                    selectEditorObject(obj);
+                }
+            }
         }
     </script>
 </body>
