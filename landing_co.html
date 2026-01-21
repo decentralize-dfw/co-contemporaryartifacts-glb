@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Co. | Contemporary Artifacts</title>
+    
+    <!-- Spline Viewer Script -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Helvetica Font Enforcement */
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            margin: 0;
+            padding: 0;
+            color: #111;
+            /* Scrollbar gizleme (isteğe bağlı estetik) */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        body::-webkit-scrollbar { 
+            display: none; 
+        }
+
+        /* 1. HAREKETLİ GRADIENT ARKA PLAN 
+           İstenen renkler: #ed3e2d ve #5f2d86
+        */
+        #animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -2; /* En arkada */
+            background: linear-gradient(-45deg, #ed3e2d, #5f2d86, #ed3e2d);
+            background-size: 400% 400%;
+            animation: gradientAnim 10s ease infinite;
+        }
+
+        @keyframes gradientAnim {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. SPLINE LAYER (SABİT)
+        */
+        #canvas-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: -1; 
+            padding: 10%; 
+            box-sizing: border-box;
+            pointer-events: none; 
+        }
+
+        spline-viewer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        spline-viewer::part(logo) {
+            display: none;
+        }
+
+        /* 3. BLUR BACKDROP (YUMUŞAK GEÇİŞLİ)
+           Keskin çizgi olmaması için mask-image kullanıyoruz.
+           Bu katman yazının arkasında duracak.
+        */
+        #blur-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 5;
+            pointer-events: none; /* Mouse olaylarını engelle */
+            
+            /* Blur efekti */
+            backdrop-filter: blur(0px); /* JS ile güncellenecek */
+            -webkit-backdrop-filter: blur(0px);
+            
+            /* ANA BLUR ÇİZGİSİNİ YOK EDEN MAGIC KOD:
+               Maskeleme sayesinde blur yukarıdan aşağıya doğru yumuşakça başlar.
+               Keskin bir dikdörtgen kenarı görmezsin.
+            */
+            -webkit-mask-image: linear-gradient(to bottom, 
+                transparent 0%, 
+                black 40%, 
+                black 60%, 
+                transparent 100%
+            );
+            mask-image: linear-gradient(to bottom, 
+                transparent 0%, 
+                black 40%, 
+                black 60%, 
+                transparent 100%
+            );
+            
+            transition: backdrop-filter 0.1s linear;
+        }
+
+        /* 4. YAZI STİLLERİ
+        */
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.0s ease-out;
+        }
+        .reveal-element.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body class="w-full">
+
+    <!-- Arka Plan Gradient -->
+    <div id="animated-bg"></div>
+
+    <!-- 3D Model -->
+    <div id="canvas-layer">
+        <spline-viewer url="https://prod.spline.design/X-xNpCt05N7o8w7p/scene.splinecode"></spline-viewer>
+    </div>
+
+    <!-- Blur Katmanı (Yazının arkasındaki cam) -->
+    <div id="blur-layer"></div>
+
+    <!-- İçerik Akışı -->
+    <div class="relative z-10 w-full">
+        
+        <!-- Boşluk: İlk başta sadece model görünsün -->
+        <div class="w-full h-[90vh]">
+             <!-- Scroll İndicator -->
+             <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 animate-bounce opacity-80 text-[10px] tracking-widest uppercase font-bold text-white drop-shadow-md">
+                Scroll
+            </div>
+        </div>
+
+        <!-- Yazı Bölümü -->
+        <!-- 
+           "Yazı tam ortada bitsin, daha aşağı kaymasın" için:
+           Buraya min-h-screen veriyoruz ve flex ile ortalıyoruz. 
+           Sayfanın son elemanı olduğu için scroll burada bitecek.
+        -->
+        <section id="textContent" class="w-full h-screen flex flex-col items-center justify-center px-6 md:px-0 relative">
+            
+            <!-- Yazının okunabilirliğini artırmak için çok hafif bir beyazlık (Blur'dan bağımsız) -->
+            <div class="absolute inset-0 bg-white/10 pointer-events-none" 
+                 style="-webkit-mask-image: linear-gradient(to bottom, transparent, black 40%, black 60%, transparent);">
+            </div>
+
+            <div class="max-w-xl text-center reveal-element relative z-20 mix-blend-hard-light"> <!-- mix-blend ile yazı backgroundla bütünleşir -->
+                
+                <h1 id="mainTitle" class="text-[15px] font-bold tracking-wider mb-8 uppercase leading-tight text-white drop-shadow-sm">
+                    STATUS CO. | CONTEMPORARY ARTIFACTS
+                </h1>
+
+                <div class="text-[12px] leading-6 space-y-6 text-white font-medium drop-shadow-sm">
+                    <p>
+                        Status Co. operates as a curation platform where the distinction between daily objects and art is reimagined.
+                        Functional designs, crafted in artist studios, are released through a series of limited "drops."
+                    </p>
+                    <p>
+                        The inaugural collection, "Contemporary Artifacts," presents a selection where form and function converge. In this series, vases with unconventional silhouettes, tactile rugs that transform spatial perception, and stools serving as sculptural interpretations of seating are featured. Each object is defined as a modern artifact, preserving the aesthetic language of the present for the future.
+                    </p>
+                    <p>
+                        The focus extends beyond acquisition; it is placed on curating a gallery-like atmosphere within living spaces, far removed from mass production.
+                    </p>
+                </div>
+
+                <div class="w-12 h-[1px] bg-white mx-auto mt-12 opacity-50"></div>
+            </div>
+        </section>
+        
+        <!-- Alttaki ekstra boşluk (spacer) tamamen kaldırıldı -->
+    </div>
+
+    <script>
+        // 1. REVEAL ANIMATION
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        const revealEls = document.querySelectorAll('.reveal-element');
+        revealEls.forEach(el => observer.observe(el));
+
+
+        // 2. DYNAMIC BLUR LOGIC
+        const blurLayer = document.getElementById('blur-layer');
+        const textSection = document.getElementById('textContent');
+
+        window.addEventListener('scroll', () => {
+            const rect = textSection.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            
+            // Text bölümü ekrana ne kadar girdi? (0 ile 1 arası)
+            // rect.top azaldıkça (yukarı çıktıkça) değer artar.
+            
+            // Hedef: Yazı ekranın ortasına tam oturduğunda blur max olsun.
+            // Yazı tam ortadayken rect.top yaklaşık 0 veya biraz pozitif olur.
+            
+            const distFromBottom = windowHeight - rect.top;
+            const triggerPoint = windowHeight * 0.5; // Ekranın yarısına gelince başlasın
+
+            let blurVal = 0;
+
+            // Basit bir haritalama
+            if (distFromBottom > 0) {
+                // Blur miktarını hesapla (Max 12px)
+                const ratio = Math.min(distFromBottom / windowHeight, 1);
+                blurVal = ratio * 12; 
+            }
+
+            // Blur'u uygula
+            blurLayer.style.backdropFilter = `blur(${blurVal}px)`;
+            blurLayer.style.webkitBackdropFilter = `blur(${blurVal}px)`;
+        });
+    </script>
+</body>
+</html>
