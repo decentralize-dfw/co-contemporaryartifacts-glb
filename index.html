@@ -13,6 +13,9 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <!-- Granim.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/granim/2.0.0/granim.min.js"></script>
+
     <style>
         body {
             font-family: 'Comfortaa', cursive;
@@ -66,8 +69,8 @@
             transform-origin: 50% 50%;
         }
 
-        /* 1. ARKA PLAN (Fluid Canvas) */
-        #fluid-canvas {
+        /* 1. ARKA PLAN (Granim Canvas) */
+        #granim-canvas {
             position: fixed;
             top: 0;
             left: 0;
@@ -112,15 +115,10 @@
         }
 
         #frozen-canvas {
-            display: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
             position: absolute;
-        }
-
-        #frozen-canvas.visible {
-            display: block !important;
-            opacity: 1 !important;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         @media (min-width: 769px) {
@@ -226,14 +224,14 @@
         <div class="mt-6 text-white/40 text-[10px] tracking-[0.4em] uppercase">Contemporary Artifacts</div>
     </div>
 
-    <!-- 1. AKIŞKAN ARKA PLAN -->
-    <canvas id="fluid-canvas"></canvas>
+    <!-- 1. GRANIM ARKA PLAN -->
+    <canvas id="granim-canvas"></canvas>
     <div id="bg-overlay"></div>
 
     <!-- 2. GIF -->
     <div id="gif-layer">
-        <img id="main-gif" alt="Animated Logo" />
-        <canvas id="frozen-canvas" style="display: none;"></canvas>
+        <img id="main-gif" alt="Animated Logo" crossorigin="anonymous" />
+        <canvas id="frozen-canvas"></canvas>
     </div>
 
     <!-- 3. BLUR -->
@@ -248,7 +246,7 @@
         <div class="w-full h-[80vh] md:h-screen"></div>
 
         <section id="textContent" class="w-full flex flex-col items-center justify-center px-2 md:px-0 relative pb-20">
-            <div class="absolute inset-0 bg-transparent pointer-events-none" 
+            <div class="absolute inset-0 bg-transparent pointer-events-none"
                  style="background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, transparent 70%);">
             </div>
 
@@ -291,7 +289,7 @@
     </div>
 
     <script>
-        // --- 1. LOADER & GIF FETCH SYSTEM ---
+        // --- 1. LOADER & GIF SYSTEM ---
         const gifUrl = "https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-5sec.gif";
         const progressCircle = document.getElementById('progress-indicator');
         const loaderText = document.getElementById('loader-text');
@@ -300,11 +298,15 @@
         const frozenCanvas = document.getElementById('frozen-canvas');
         const mainContent = document.getElementById('main-content');
 
-        // Çember çevresi (2 * pi * r) -> 2 * 3.14159 * 70 ≈ 439.82
         const circumference = 439.82;
         let isLoaded = false;
+        let gifFrozen = false;
+        let blobUrl = null;
 
-        // İndirme işlemi (XHR ile Blob olarak çekiyoruz)
+        // Frozen canvas başta gizli
+        frozenCanvas.style.display = 'none';
+
+        // GIF'i indir
         const xhr = new XMLHttpRequest();
         xhr.open('GET', gifUrl, true);
         xhr.responseType = 'blob';
@@ -319,16 +321,17 @@
         xhr.onload = function() {
             if (this.status === 200) {
                 const blob = this.response;
-                const objectURL = URL.createObjectURL(blob);
+                blobUrl = URL.createObjectURL(blob);
 
                 gifImg.onload = function() {
                     isLoaded = true;
                     finishLoading();
-                    // 14 saniye sonra dondur (GIF süresi: 00:00:14;18)
+
+                    // 14 saniye sonra DONDUR
                     setTimeout(freezeGif, 14000);
                 };
 
-                gifImg.src = objectURL;
+                gifImg.src = blobUrl;
             }
         };
 
@@ -341,21 +344,21 @@
         }
 
         function finishLoading() {
-            // Scroll kilidini aç
             document.body.classList.remove('stop-scrolling');
 
-            // Loader'ı yumuşakça gizle
             loaderOverlay.style.opacity = '0';
             setTimeout(() => {
                 loaderOverlay.style.display = 'none';
             }, 800);
 
-            // GIF ve İçeriği göster
             gifImg.style.opacity = '1';
             mainContent.style.opacity = '1';
         }
 
         function freezeGif() {
+            if (gifFrozen) return;
+            gifFrozen = true;
+
             try {
                 const naturalW = gifImg.naturalWidth;
                 const naturalH = gifImg.naturalHeight;
@@ -369,189 +372,98 @@
                 frozenCanvas.width = naturalW;
                 frozenCanvas.height = naturalH;
 
-                // CSS stillerini GIF ile eşleştir
+                // GIF'in ekrandaki boyutlarını al
                 const gifRect = gifImg.getBoundingClientRect();
+
+                // Canvas'ı GIF ile aynı boyutta yap
                 frozenCanvas.style.width = gifRect.width + 'px';
                 frozenCanvas.style.height = gifRect.height + 'px';
 
+                // Son frame'i canvas'a çiz
                 const ctx = frozenCanvas.getContext('2d');
                 ctx.drawImage(gifImg, 0, 0, naturalW, naturalH);
 
                 // Canvas'ı göster
-                frozenCanvas.classList.add('visible');
+                frozenCanvas.style.display = 'block';
+                frozenCanvas.style.opacity = '1';
 
-                // GIF'i gizle (biraz gecikmeyle)
-                setTimeout(() => {
-                    gifImg.style.display = 'none';
-                }, 100);
+                // GIF'i TAMAMEN öldür - src'yi temizle, DOM'dan gizle
+                gifImg.style.opacity = '0';
+                gifImg.style.display = 'none';
+                gifImg.src = ''; // SRC'yi temizle - loop dursun
 
-                console.log("GIF başarıyla donduruldu.");
+                // Blob URL'i temizle
+                if (blobUrl) {
+                    URL.revokeObjectURL(blobUrl);
+                    blobUrl = null;
+                }
+
+                console.log("GIF DONDURULDU - Son frame canvas'ta.");
+
+                // Resize olduğunda canvas'ı da resize et
+                window.addEventListener('resize', resizeFrozenCanvas);
+
             } catch (e) {
                 console.error("Freeze error:", e);
-                // Hata durumunda GIF'i görünür bırak
-                gifImg.style.display = 'block';
-                gifImg.style.opacity = '1';
             }
         }
 
+        function resizeFrozenCanvas() {
+            if (!gifFrozen) return;
 
-        // --- 2. ORGANIC WAVY FLUID BACKGROUND ---
-        const canvas = document.getElementById('fluid-canvas');
-        const ctx = canvas.getContext('2d');
+            // Ekran boyutuna göre canvas'ı ölçekle
+            const windowHeight = window.innerHeight;
+            const windowWidth = window.innerWidth;
 
-        let width, height;
-        let mouse = { x: -9999, y: -9999, active: false };
-        let time = 0;
+            const canvasRatio = frozenCanvas.width / frozenCanvas.height;
 
-        // Renk paleti - düşük kontrastlı, birbirine yakın tonlar
-        const colors = [
-            { r: 35, g: 18, b: 55 },    // Koyu mor
-            { r: 45, g: 25, b: 70 },    // Orta koyu mor
-            { r: 55, g: 35, b: 85 },    // Orta mor
-            { r: 65, g: 45, b: 95 },    // Açık mor
-            { r: 50, g: 30, b: 75 },    // Ara ton
-            { r: 40, g: 22, b: 62 }     // Koyu ara ton
-        ];
+            let newWidth, newHeight;
 
-        // Organik dalga noktaları
-        class WavePoint {
-            constructor(x, y, colorIndex) {
-                this.baseX = x;
-                this.baseY = y;
-                this.x = x;
-                this.y = y;
-                this.colorIndex = colorIndex;
-                this.phase = Math.random() * Math.PI * 2;
-                this.amplitude = 80 + Math.random() * 120;
-                this.frequency = 0.0002 + Math.random() * 0.0004; // Daha yavaş
-                this.radius = 350 + Math.random() * 400; // Daha büyük
-            }
+            if (window.innerWidth >= 769) {
+                // Desktop: Yüksekliğe göre ölçekle
+                newHeight = windowHeight;
+                newWidth = windowHeight * canvasRatio;
+            } else {
+                // Mobile: Genişliğe göre ölçekle
+                newWidth = windowWidth;
+                newHeight = windowWidth / canvasRatio;
 
-            update(t) {
-                // Çok yavaş ve organik hareket
-                const wave1 = Math.sin(t * this.frequency + this.phase) * this.amplitude;
-                const wave2 = Math.cos(t * this.frequency * 0.5 + this.phase * 1.2) * this.amplitude * 0.5;
-
-                this.x = this.baseX + wave1 + wave2;
-                this.y = this.baseY + Math.cos(t * this.frequency * 0.3 + this.phase) * this.amplitude * 0.6;
-
-                // Mouse etkileşimi - sadece yumuşak itme, görsel efekt yok
-                if (mouse.active) {
-                    const dx = this.x - mouse.x;
-                    const dy = this.y - mouse.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const pushRadius = 400;
-
-                    if (dist < pushRadius && dist > 0) {
-                        const force = (1 - dist / pushRadius) * 60;
-                        this.x += (dx / dist) * force;
-                        this.y += (dy / dist) * force;
-                    }
-                }
-            }
-        }
-
-        let wavePoints = [];
-
-        function initFluid() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-
-            wavePoints = [];
-
-            // Daha fazla nokta, daha geniş dağılım
-            const cols = 4;
-            const rows = 4;
-            const spacingX = width / (cols - 1);
-            const spacingY = height / (rows - 1);
-
-            for (let i = 0; i < cols; i++) {
-                for (let j = 0; j < rows; j++) {
-                    const x = i * spacingX;
-                    const y = j * spacingY;
-                    const colorIndex = Math.floor(Math.random() * colors.length);
-                    wavePoints.push(new WavePoint(x, y, colorIndex));
+                if (newHeight > windowHeight * 0.8) {
+                    newHeight = windowHeight * 0.8;
+                    newWidth = newHeight * canvasRatio;
                 }
             }
 
-            // Ekstra noktalar kenarlarda
-            for (let i = 0; i < 6; i++) {
-                wavePoints.push(new WavePoint(
-                    Math.random() * width,
-                    Math.random() * height,
-                    Math.floor(Math.random() * colors.length)
-                ));
+            frozenCanvas.style.width = newWidth + 'px';
+            frozenCanvas.style.height = newHeight + 'px';
+        }
+
+
+        // --- 2. GRANIM.JS BACKGROUND ---
+        // Renkler: #2E0E4A (koyu), #664B9E (orta), #BCA6D1 (açık - %27-35 ağırlık)
+        var granimInstance = new Granim({
+            element: '#granim-canvas',
+            direction: 'diagonal',
+            isPausedWhenNotInView: true,
+            stateTransitionSpeed: 1000,
+            states: {
+                "default-state": {
+                    gradients: [
+                        // Koyu tonlar ağırlıklı (%65-73), açık ton az (%27-35)
+                        ['#2E0E4A', '#3d1a5c'],
+                        ['#3d1a5c', '#664B9E'],
+                        ['#664B9E', '#4a2d7a'],
+                        ['#4a2d7a', '#2E0E4A'],
+                        ['#2E0E4A', '#553d7d'],
+                        ['#553d7d', '#7a5aa0'], // Açık tona yaklaşma
+                        ['#7a5aa0', '#664B9E'],
+                        ['#664B9E', '#2E0E4A']
+                    ],
+                    transitionSpeed: 3000,
+                    loop: true
+                }
             }
-        }
-
-        function animateFluid() {
-            time += 16;
-
-            // Düz koyu arka plan
-            ctx.fillStyle = '#0d0417';
-            ctx.fillRect(0, 0, width, height);
-
-            // Her noktayı güncelle
-            wavePoints.forEach(point => {
-                point.update(time);
-            });
-
-            // Screen blend mode - yumuşak karışım
-            ctx.globalCompositeOperation = 'screen';
-
-            wavePoints.forEach(point => {
-                const color = colors[point.colorIndex];
-
-                // Çok büyük, çok yumuşak gradient
-                const grad = ctx.createRadialGradient(
-                    point.x, point.y, 0,
-                    point.x, point.y, point.radius
-                );
-
-                // Çok düşük opacity değerleri - yumuşak geçiş
-                grad.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.35)`);
-                grad.addColorStop(0.2, `rgba(${color.r}, ${color.g}, ${color.b}, 0.25)`);
-                grad.addColorStop(0.4, `rgba(${color.r}, ${color.g}, ${color.b}, 0.15)`);
-                grad.addColorStop(0.7, `rgba(${color.r}, ${color.g}, ${color.b}, 0.05)`);
-                grad.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
-
-                ctx.fillStyle = grad;
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            ctx.globalCompositeOperation = 'source-over';
-
-            requestAnimationFrame(animateFluid);
-        }
-
-        window.addEventListener('resize', initFluid);
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isLoaded) return;
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-            mouse.active = true;
         });
-
-        document.addEventListener('mouseleave', () => {
-            mouse.active = false;
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!isLoaded) return;
-            mouse.x = e.touches[0].clientX;
-            mouse.y = e.touches[0].clientY;
-            mouse.active = true;
-        }, { passive: true });
-
-        document.addEventListener('touchend', () => {
-            mouse.active = false;
-        });
-
-        initFluid();
-        animateFluid();
 
 
         // --- 3. HELPER LOGIC ---
