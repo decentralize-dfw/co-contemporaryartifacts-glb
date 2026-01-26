@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Status Co. | Contemporary Artifacts</title>
+    
+    <!-- Comfortaa Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Comfortaa', cursive;
+            margin: 0;
+            padding: 0;
+            color: #111;
+            overflow-x: hidden; /* Yüklenirken JS ile kontrol edilecek */
+            background-color: #1a0b2e;
+        }
+
+        /* SCROLLBAR GİZLEME */
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        ::-webkit-scrollbar { display: none; }
+
+        /* LOADER EKRANI */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0d0417; /* Simsiyah değil, çok koyu mor */
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        /* Dairesel Progress */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.1s linear;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* 1. ARKA PLAN (Fluid Canvas) */
+        #fluid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            /* Yükseklik hesaplaması */
+            height: var(--app-height, 100vh);
+            z-index: -3;
+            /* Arka plan renklerin karışması için blur filtresi (CSS fallback) */
+            /* Canvas içinde de yapacağız ama burası garanti olsun */
+        }
+
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -2; 
+            background: radial-gradient(circle at center, transparent 20%, rgba(10, 5, 20, 0.6) 100%);
+            pointer-events: none;
+        }
+
+        /* 2. GIF LAYER */
+        #gif-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -1; 
+            pointer-events: none; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #main-gif, #frozen-canvas {
+            display: block;
+            /* Mobil/Masaüstü boyutları JS ile ayarlanacak veya CSS ile */
+            opacity: 0;
+            transition: opacity 1.0s ease;
+        }
+
+        @media (min-width: 769px) {
+            #main-gif, #frozen-canvas {
+                height: 100%;
+                width: auto;
+                max-width: none;
+                object-fit: contain;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #main-gif, #frozen-canvas {
+                width: 100%;
+                height: auto;
+                max-height: 80vh; 
+                object-fit: contain;
+            }
+        }
+
+        /* 3. BLUR & UI */
+        #blur-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: 5;
+            pointer-events: none;
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+        }
+
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.0s ease-out;
+        }
+        .reveal-element.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        #scroll-indicator-container {
+            position: fixed; 
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50; 
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            pointer-events: none;
+        }
+
+        /* Scroll kilitli sınıfı */
+        .stop-scrolling {
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="w-full stop-scrolling">
+
+    <!-- LOADER -->
+    <div id="loader-overlay">
+        <div class="relative w-32 h-32 flex items-center justify-center">
+            <svg class="progress-ring" width="120" height="120">
+                <circle
+                    class="progress-ring__circle"
+                    stroke="rgba(255,255,255,0.2)"
+                    stroke-width="4"
+                    fill="transparent"
+                    r="52"
+                    cx="60"
+                    cy="60"
+                    style="stroke-dasharray: 326.726; stroke-dashoffset: 0;"
+                />
+                <circle
+                    id="progress-indicator"
+                    class="progress-ring__circle"
+                    stroke="white"
+                    stroke-width="4"
+                    fill="transparent"
+                    r="52"
+                    cx="60"
+                    cy="60"
+                    style="stroke-dasharray: 326.726; stroke-dashoffset: 326.726;"
+                />
+            </svg>
+            <span id="loader-text" class="absolute text-white font-bold text-sm tracking-widest">0%</span>
+        </div>
+        <div class="mt-4 text-white/50 text-xs tracking-[0.3em] uppercase animate-pulse">Loading Artifacts</div>
+    </div>
+
+    <!-- 1. AKIŞKAN ARKA PLAN -->
+    <canvas id="fluid-canvas"></canvas>
+    <div id="bg-overlay"></div>
+
+    <!-- 2. GIF -->
+    <div id="gif-layer">
+        <img id="main-gif" alt="Animated Logo" />
+        <canvas id="frozen-canvas" style="display: none;"></canvas>
+    </div>
+
+    <!-- 3. BLUR -->
+    <div id="blur-layer"></div>
+
+    <!-- 4. UI -->
+    <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">
+        Scroll
+    </div>
+
+    <div class="relative z-10 w-full" id="main-content" style="opacity: 0; transition: opacity 1s ease;">
+        <div class="w-full h-[80vh] md:h-screen"></div>
+
+        <section id="textContent" class="w-full flex flex-col items-center justify-center px-2 md:px-0 relative pb-20">
+            <div class="absolute inset-0 bg-transparent pointer-events-none" 
+                 style="background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, transparent 70%);">
+            </div>
+
+            <div class="max-w-2xl text-center reveal-element relative z-20 mix-blend-screen px-4 md:px-4 mt-10 md:mt-0">
+                <h1 id="mainTitle" class="flex flex-col items-center justify-center text-white drop-shadow-xl mb-6 md:mb-10">
+                    <span class="text-3xl md:text-5xl font-bold tracking-widest uppercase leading-tight">
+                        STATUS CO.
+                    </span>
+                    <span class="text-lg md:text-3xl font-light italic tracking-wide uppercase mt-2 md:mt-4 text-purple-100">
+                        CONTEMPORARY ARTIFACTS
+                    </span>
+                    <span class="text-[10px] md:text-xs font-light tracking-[0.4em] uppercase mt-3 md:mt-6 opacity-80 border-t border-white/30 pt-2">
+                        DROP 1
+                    </span>
+                </h1>
+
+                <div class="text-[12px] md:text-[16px] leading-6 md:leading-8 space-y-4 md:space-y-6 text-gray-100 font-medium drop-shadow-md">
+                    <p>
+                        Status Co. operates as a curation platform where the distinction between daily objects and art is reimagined.
+                        Functional designs, crafted in artist studios, are released through a series of limited "drops."
+                    </p>
+                    <p>
+                        The inaugural collection, "Contemporary Artifacts," presents a selection where form and function converge. In this series, vases with unconventional silhouettes, tactile rugs that transform spatial perception, and stools serving as sculptural interpretations of seating are featured.
+                    </p>
+                </div>
+
+                <div class="w-12 md:w-20 h-[1px] bg-white mx-auto mt-8 md:mt-12 opacity-50"></div>
+
+                <div class="mt-6 md:mt-10 flex justify-center">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-7 md:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // --- 1. LOADER & GIF FETCH SYSTEM ---
+        const gifUrl = "https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-5sec.gif";
+        const progressCircle = document.getElementById('progress-indicator');
+        const loaderText = document.getElementById('loader-text');
+        const loaderOverlay = document.getElementById('loader-overlay');
+        const gifImg = document.getElementById('main-gif');
+        const frozenCanvas = document.getElementById('frozen-canvas');
+        const mainContent = document.getElementById('main-content');
+        
+        // Çember çevresi (2 * pi * r) -> 2 * 3.14 * 52 ≈ 326.726
+        const circumference = 326.726;
+        
+        // İndirme işlemi (XHR ile Blob olarak çekiyoruz)
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', gifUrl, true);
+        xhr.responseType = 'blob';
+
+        xhr.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                setProgress(percent);
+            }
+        };
+
+        xhr.onload = function() {
+            if (this.status === 200) {
+                const blob = this.response;
+                // Blob URL oluştur (Bu URL yereldir, CORS hatası vermez)
+                const objectURL = URL.createObjectURL(blob);
+                
+                gifImg.onload = function() {
+                    // Yüklendi, loader'ı kaldır, içeriği aç
+                    finishLoading();
+                    
+                    // 4.9 saniye sonra dondur
+                    setTimeout(freezeGif, 4900);
+                };
+                
+                gifImg.src = objectURL;
+            }
+        };
+
+        xhr.send();
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            loaderText.innerText = `${percent}%`;
+        }
+
+        function finishLoading() {
+            // Scroll kilidini aç
+            document.body.classList.remove('stop-scrolling');
+            
+            // Loader'ı yumuşakça gizle
+            loaderOverlay.style.opacity = '0';
+            setTimeout(() => {
+                loaderOverlay.style.display = 'none';
+            }, 800);
+
+            // GIF ve İçeriği göster
+            gifImg.style.opacity = '1';
+            mainContent.style.opacity = '1';
+        }
+
+        function freezeGif() {
+            // Blob URL olduğu için Canvas'a çizince 'tainted' olmaz!
+            try {
+                frozenCanvas.width = gifImg.naturalWidth;
+                frozenCanvas.height = gifImg.naturalHeight;
+                
+                const ctx = frozenCanvas.getContext('2d');
+                ctx.drawImage(gifImg, 0, 0);
+                
+                // Swap işlemi
+                frozenCanvas.style.display = 'block';
+                frozenCanvas.style.opacity = '1';
+                
+                requestAnimationFrame(() => {
+                    gifImg.style.display = 'none';
+                });
+                
+                console.log("GIF başarıyla donduruldu (Blob yöntemi).");
+            } catch (e) {
+                console.error("Freeze error:", e);
+            }
+        }
+
+
+        // --- 2. FLUID BACKGROUND ANIMATION ---
+        const canvas = document.getElementById('fluid-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let mouse = { x: -1000, y: -1000 };
+
+        // Renk topları (Metaballs benzeri)
+        // CMYK karşılıkları: #2E0E4A, #664B9E, #BCA6D1 + Extra Derinlik
+        const blobs = [
+            { x: 0, y: 0, r: 0, dx: 0.5, dy: 0.5, color: '#2E0E4A' },
+            { x: 0, y: 0, r: 0, dx: -0.5, dy: 0.3, color: '#4a1259' },
+            { x: 0, y: 0, r: 0, dx: 0.3, dy: -0.6, color: '#664B9E' },
+            { x: 0, y: 0, r: 0, dx: -0.4, dy: -0.4, color: '#1a0833' }, // Çok koyu
+            { x: 0, y: 0, r: 0, dx: 0.6, dy: -0.2, color: '#3d1e66' } 
+        ];
+
+        function initFluid() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // Topları sahneye dağıt
+            blobs.forEach(b => {
+                b.x = Math.random() * width;
+                b.y = Math.random() * height;
+                b.r = Math.min(width, height) * 0.4; // Büyük yarıçap
+            });
+        }
+
+        function animateFluid() {
+            // Tüm ekranı temizle
+            ctx.clearRect(0, 0, width, height);
+            
+            // "Gooey" efekti için arka planı bulanıklaştırıyoruz
+            // Canvas context filter (modern tarayıcılar)
+            ctx.filter = 'blur(60px)'; // Çok yüksek blur = gradient geçişi (çizgi yok)
+            
+            blobs.forEach(b => {
+                // Hareket
+                b.x += b.dx;
+                b.y += b.dy;
+
+                // Kenarlardan sekme
+                if (b.x < -b.r) b.x = width + b.r;
+                if (b.x > width + b.r) b.x = -b.r;
+                if (b.y < -b.r) b.y = height + b.r;
+                if (b.y > height + b.r) b.y = -b.r;
+
+                // Mouse Etkileşimi (Smooth Repulsion)
+                const dx = mouse.x - b.x;
+                const dy = mouse.y - b.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                const interactRange = 400;
+
+                if (dist < interactRange) {
+                    const force = (interactRange - dist) / interactRange;
+                    // Mouse'dan yumuşakça kaçış
+                    b.x -= (dx / dist) * force * 2; 
+                    b.y -= (dy / dist) * force * 2;
+                }
+
+                // Çizim
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fillStyle = b.color;
+                ctx.fill();
+                ctx.closePath();
+            });
+
+            ctx.filter = 'none'; // Filter reset
+            requestAnimationFrame(animateFluid);
+        }
+
+        window.addEventListener('resize', initFluid);
+        document.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+        document.addEventListener('touchmove', (e) => {
+            mouse.x = e.touches[0].clientX;
+            mouse.y = e.touches[0].clientY;
+        }, { passive: true });
+
+        initFluid();
+        animateFluid();
+
+
+        // --- 3. HELPER LOGIC ---
+        // Mobile Height Fix
+        const setAppHeight = () => {
+            document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`);
+        };
+        window.addEventListener('resize', setAppHeight);
+        setAppHeight();
+
+        // Reveal Animation
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
+
+        // Blur & Scroll Indicator
+        const blurLayer = document.getElementById('blur-layer');
+        const scrollIndicator = document.getElementById('scroll-indicator-container');
+        let hasScrolled = false;
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            
+            if (!hasScrolled && scrollY > 50) {
+                scrollIndicator.style.opacity = '0';
+                hasScrolled = true;
+            }
+
+            const maxBlur = 16;
+            const trigger = window.innerHeight * 0.6;
+            let val = (scrollY / trigger) * maxBlur;
+            if (val > maxBlur) val = maxBlur;
+            
+            blurLayer.style.backdropFilter = `blur(${val}px)`;
+            blurLayer.style.webkitBackdropFilter = `blur(${val}px)`;
+        });
+
+    </script>
+</body>
+</html>
