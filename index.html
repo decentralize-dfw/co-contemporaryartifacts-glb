@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Status Co. | Contemporary Artifacts</title>
-    
+
     <!-- Comfortaa Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
-    
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -19,7 +19,7 @@
             margin: 0;
             padding: 0;
             color: #111;
-            overflow-x: hidden; /* Yüklenirken JS ile kontrol edilecek */
+            overflow-x: hidden;
             background-color: #1a0b2e;
         }
 
@@ -30,14 +30,16 @@
         }
         ::-webkit-scrollbar { display: none; }
 
-        /* LOADER EKRANI */
+        /* LOADER EKRANI - Gradient Arka Plan */
         #loader-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #0d0417; /* Simsiyah değil, çok koyu mor */
+            background: linear-gradient(135deg, #0d0417 0%, #1a0b2e 25%, #2E0E4A 50%, #664B9E 75%, #1a0b2e 100%);
+            background-size: 400% 400%;
+            animation: loaderGradient 3s ease infinite;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -46,9 +48,20 @@
             transition: opacity 0.8s ease;
         }
 
-        /* Dairesel Progress */
+        @keyframes loaderGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Dairesel Progress - Gradient Stroke */
         .progress-ring__circle {
-            transition: stroke-dashoffset 0.1s linear;
+            transition: stroke-dashoffset 0.15s ease-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .progress-ring__bg {
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
@@ -60,11 +73,8 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            /* Yükseklik hesaplaması */
             height: var(--app-height, 100vh);
             z-index: -3;
-            /* Arka plan renklerin karışması için blur filtresi (CSS fallback) */
-            /* Canvas içinde de yapacağız ama burası garanti olsun */
         }
 
         #bg-overlay {
@@ -74,8 +84,8 @@
             width: 100%;
             height: 100vh;
             height: var(--app-height, 100vh);
-            z-index: -2; 
-            background: radial-gradient(circle at center, transparent 20%, rgba(10, 5, 20, 0.6) 100%);
+            z-index: -2;
+            background: radial-gradient(ellipse at center, transparent 10%, rgba(10, 5, 20, 0.4) 60%, rgba(10, 5, 20, 0.8) 100%);
             pointer-events: none;
         }
 
@@ -87,19 +97,30 @@
             width: 100%;
             height: 100vh;
             height: var(--app-height, 100vh);
-            z-index: -1; 
-            pointer-events: none; 
+            z-index: -1;
+            pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
         }
 
-        #main-gif, #frozen-canvas {
+        #main-gif {
             display: block;
-            /* Mobil/Masaüstü boyutları JS ile ayarlanacak veya CSS ile */
             opacity: 0;
             transition: opacity 1.0s ease;
+        }
+
+        #frozen-canvas {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            position: absolute;
+        }
+
+        #frozen-canvas.visible {
+            display: block !important;
+            opacity: 1 !important;
         }
 
         @media (min-width: 769px) {
@@ -115,7 +136,7 @@
             #main-gif, #frozen-canvas {
                 width: 100%;
                 height: auto;
-                max-height: 80vh; 
+                max-height: 80vh;
                 object-fit: contain;
             }
         }
@@ -145,13 +166,13 @@
             opacity: 1;
             transform: translateY(0);
         }
-        
+
         #scroll-indicator-container {
-            position: fixed; 
+            position: fixed;
             bottom: 40px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 50; 
+            z-index: 50;
             transition: opacity 0.8s ease, visibility 0.8s ease;
             pointer-events: none;
         }
@@ -165,35 +186,44 @@
 </head>
 <body class="w-full stop-scrolling">
 
-    <!-- LOADER -->
+    <!-- LOADER - Gradient Dairesel Progress -->
     <div id="loader-overlay">
-        <div class="relative w-32 h-32 flex items-center justify-center">
-            <svg class="progress-ring" width="120" height="120">
+        <div class="relative w-40 h-40 flex items-center justify-center">
+            <svg class="progress-ring" width="160" height="160" viewBox="0 0 160 160">
+                <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#BCA6D1"/>
+                        <stop offset="50%" stop-color="#664B9E"/>
+                        <stop offset="100%" stop-color="#2E0E4A"/>
+                    </linearGradient>
+                </defs>
                 <circle
-                    class="progress-ring__circle"
-                    stroke="rgba(255,255,255,0.2)"
-                    stroke-width="4"
+                    class="progress-ring__bg"
+                    stroke="rgba(255,255,255,0.08)"
+                    stroke-width="3"
                     fill="transparent"
-                    r="52"
-                    cx="60"
-                    cy="60"
-                    style="stroke-dasharray: 326.726; stroke-dashoffset: 0;"
+                    r="70"
+                    cx="80"
+                    cy="80"
                 />
                 <circle
                     id="progress-indicator"
                     class="progress-ring__circle"
-                    stroke="white"
-                    stroke-width="4"
+                    stroke="url(#progressGradient)"
+                    stroke-width="3"
+                    stroke-linecap="round"
                     fill="transparent"
-                    r="52"
-                    cx="60"
-                    cy="60"
-                    style="stroke-dasharray: 326.726; stroke-dashoffset: 326.726;"
+                    r="70"
+                    cx="80"
+                    cy="80"
+                    style="stroke-dasharray: 439.82; stroke-dashoffset: 439.82;"
                 />
             </svg>
-            <span id="loader-text" class="absolute text-white font-bold text-sm tracking-widest">0%</span>
+            <div class="absolute flex flex-col items-center">
+                <span id="loader-text" class="text-white font-bold text-2xl tracking-wider">0%</span>
+            </div>
         </div>
-        <div class="mt-4 text-white/50 text-xs tracking-[0.3em] uppercase animate-pulse">Loading Artifacts</div>
+        <div class="mt-6 text-white/40 text-[10px] tracking-[0.4em] uppercase">Contemporary Artifacts</div>
     </div>
 
     <!-- 1. AKIŞKAN ARKA PLAN -->
@@ -269,10 +299,11 @@
         const gifImg = document.getElementById('main-gif');
         const frozenCanvas = document.getElementById('frozen-canvas');
         const mainContent = document.getElementById('main-content');
-        
-        // Çember çevresi (2 * pi * r) -> 2 * 3.14 * 52 ≈ 326.726
-        const circumference = 326.726;
-        
+
+        // Çember çevresi (2 * pi * r) -> 2 * 3.14159 * 70 ≈ 439.82
+        const circumference = 439.82;
+        let isLoaded = false;
+
         // İndirme işlemi (XHR ile Blob olarak çekiyoruz)
         const xhr = new XMLHttpRequest();
         xhr.open('GET', gifUrl, true);
@@ -288,17 +319,15 @@
         xhr.onload = function() {
             if (this.status === 200) {
                 const blob = this.response;
-                // Blob URL oluştur (Bu URL yereldir, CORS hatası vermez)
                 const objectURL = URL.createObjectURL(blob);
-                
+
                 gifImg.onload = function() {
-                    // Yüklendi, loader'ı kaldır, içeriği aç
+                    isLoaded = true;
                     finishLoading();
-                    
                     // 4.9 saniye sonra dondur
                     setTimeout(freezeGif, 4900);
                 };
-                
+
                 gifImg.src = objectURL;
             }
         };
@@ -314,7 +343,7 @@
         function finishLoading() {
             // Scroll kilidini aç
             document.body.classList.remove('stop-scrolling');
-            
+
             // Loader'ı yumuşakça gizle
             loaderOverlay.style.opacity = '0';
             setTimeout(() => {
@@ -327,111 +356,221 @@
         }
 
         function freezeGif() {
-            // Blob URL olduğu için Canvas'a çizince 'tainted' olmaz!
             try {
-                frozenCanvas.width = gifImg.naturalWidth;
-                frozenCanvas.height = gifImg.naturalHeight;
-                
+                const naturalW = gifImg.naturalWidth;
+                const naturalH = gifImg.naturalHeight;
+
+                if (!naturalW || !naturalH) {
+                    console.error("GIF boyutları alınamadı");
+                    return;
+                }
+
+                // Canvas boyutlarını ayarla
+                frozenCanvas.width = naturalW;
+                frozenCanvas.height = naturalH;
+
+                // CSS stillerini GIF ile eşleştir
+                const gifRect = gifImg.getBoundingClientRect();
+                frozenCanvas.style.width = gifRect.width + 'px';
+                frozenCanvas.style.height = gifRect.height + 'px';
+
                 const ctx = frozenCanvas.getContext('2d');
-                ctx.drawImage(gifImg, 0, 0);
-                
-                // Swap işlemi
-                frozenCanvas.style.display = 'block';
-                frozenCanvas.style.opacity = '1';
-                
-                requestAnimationFrame(() => {
+                ctx.drawImage(gifImg, 0, 0, naturalW, naturalH);
+
+                // Canvas'ı göster
+                frozenCanvas.classList.add('visible');
+
+                // GIF'i gizle (biraz gecikmeyle)
+                setTimeout(() => {
                     gifImg.style.display = 'none';
-                });
-                
-                console.log("GIF başarıyla donduruldu (Blob yöntemi).");
+                }, 100);
+
+                console.log("GIF başarıyla donduruldu.");
             } catch (e) {
                 console.error("Freeze error:", e);
+                // Hata durumunda GIF'i görünür bırak
+                gifImg.style.display = 'block';
+                gifImg.style.opacity = '1';
             }
         }
 
 
-        // --- 2. FLUID BACKGROUND ANIMATION ---
+        // --- 2. ORGANIC WAVY FLUID BACKGROUND ---
         const canvas = document.getElementById('fluid-canvas');
         const ctx = canvas.getContext('2d');
-        
-        let width, height;
-        let mouse = { x: -1000, y: -1000 };
 
-        // Renk topları (Metaballs benzeri)
-        // CMYK karşılıkları: #2E0E4A, #664B9E, #BCA6D1 + Extra Derinlik
-        const blobs = [
-            { x: 0, y: 0, r: 0, dx: 0.5, dy: 0.5, color: '#2E0E4A' },
-            { x: 0, y: 0, r: 0, dx: -0.5, dy: 0.3, color: '#4a1259' },
-            { x: 0, y: 0, r: 0, dx: 0.3, dy: -0.6, color: '#664B9E' },
-            { x: 0, y: 0, r: 0, dx: -0.4, dy: -0.4, color: '#1a0833' }, // Çok koyu
-            { x: 0, y: 0, r: 0, dx: 0.6, dy: -0.2, color: '#3d1e66' } 
+        let width, height;
+        let mouse = { x: -9999, y: -9999, active: false };
+        let time = 0;
+
+        // Renk paleti
+        const colors = [
+            { r: 46, g: 14, b: 74 },    // #2E0E4A
+            { r: 102, g: 75, b: 158 },  // #664B9E
+            { r: 188, g: 166, b: 209 }, // #BCA6D1
+            { r: 74, g: 18, b: 89 },    // #4a1259
+            { r: 26, g: 8, b: 51 },     // #1a0833
+            { r: 61, g: 30, b: 102 }    // #3d1e66
         ];
+
+        // Organik dalga noktaları
+        class WavePoint {
+            constructor(x, y, colorIndex) {
+                this.baseX = x;
+                this.baseY = y;
+                this.x = x;
+                this.y = y;
+                this.colorIndex = colorIndex;
+                this.phase = Math.random() * Math.PI * 2;
+                this.amplitude = 50 + Math.random() * 100;
+                this.frequency = 0.0005 + Math.random() * 0.001;
+                this.radius = 200 + Math.random() * 300;
+            }
+
+            update(t) {
+                // Organik hareket - birden fazla sinüs dalgası kombinasyonu
+                const wave1 = Math.sin(t * this.frequency + this.phase) * this.amplitude;
+                const wave2 = Math.cos(t * this.frequency * 0.7 + this.phase * 1.3) * this.amplitude * 0.6;
+                const wave3 = Math.sin(t * this.frequency * 1.3 + this.phase * 0.5) * this.amplitude * 0.4;
+
+                this.x = this.baseX + wave1 + wave2;
+                this.y = this.baseY + wave3 + Math.cos(t * this.frequency * 0.5 + this.phase) * this.amplitude * 0.8;
+
+                // Mouse etkileşimi - yumuşak itme (glow yok)
+                if (mouse.active) {
+                    const dx = this.x - mouse.x;
+                    const dy = this.y - mouse.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const pushRadius = 300;
+
+                    if (dist < pushRadius && dist > 0) {
+                        const force = (1 - dist / pushRadius) * 80;
+                        this.x += (dx / dist) * force;
+                        this.y += (dy / dist) * force;
+                    }
+                }
+            }
+        }
+
+        let wavePoints = [];
 
         function initFluid() {
             width = canvas.width = window.innerWidth;
             height = canvas.height = window.innerHeight;
-            
-            // Topları sahneye dağıt
-            blobs.forEach(b => {
-                b.x = Math.random() * width;
-                b.y = Math.random() * height;
-                b.r = Math.min(width, height) * 0.4; // Büyük yarıçap
-            });
+
+            wavePoints = [];
+
+            // Grid şeklinde dalga noktaları oluştur
+            const cols = 5;
+            const rows = 5;
+            const spacingX = width / (cols - 1);
+            const spacingY = height / (rows - 1);
+
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                    const x = i * spacingX;
+                    const y = j * spacingY;
+                    const colorIndex = Math.floor(Math.random() * colors.length);
+                    wavePoints.push(new WavePoint(x, y, colorIndex));
+                }
+            }
+
+            // Ekstra rastgele noktalar
+            for (let i = 0; i < 8; i++) {
+                wavePoints.push(new WavePoint(
+                    Math.random() * width,
+                    Math.random() * height,
+                    Math.floor(Math.random() * colors.length)
+                ));
+            }
         }
 
         function animateFluid() {
-            // Tüm ekranı temizle
-            ctx.clearRect(0, 0, width, height);
-            
-            // "Gooey" efekti için arka planı bulanıklaştırıyoruz
-            // Canvas context filter (modern tarayıcılar)
-            ctx.filter = 'blur(60px)'; // Çok yüksek blur = gradient geçişi (çizgi yok)
-            
-            blobs.forEach(b => {
-                // Hareket
-                b.x += b.dx;
-                b.y += b.dy;
+            time += 16; // ~60fps
 
-                // Kenarlardan sekme
-                if (b.x < -b.r) b.x = width + b.r;
-                if (b.x > width + b.r) b.x = -b.r;
-                if (b.y < -b.r) b.y = height + b.r;
-                if (b.y > height + b.r) b.y = -b.r;
+            // Arka plan - koyu gradient
+            const bgGrad = ctx.createRadialGradient(
+                width / 2, height / 2, 0,
+                width / 2, height / 2, Math.max(width, height)
+            );
+            bgGrad.addColorStop(0, '#1a0b2e');
+            bgGrad.addColorStop(1, '#0d0417');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, width, height);
 
-                // Mouse Etkileşimi (Smooth Repulsion)
-                const dx = mouse.x - b.x;
-                const dy = mouse.y - b.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                const interactRange = 400;
-
-                if (dist < interactRange) {
-                    const force = (interactRange - dist) / interactRange;
-                    // Mouse'dan yumuşakça kaçış
-                    b.x -= (dx / dist) * force * 2; 
-                    b.y -= (dy / dist) * force * 2;
-                }
-
-                // Çizim
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-                ctx.fillStyle = b.color;
-                ctx.fill();
-                ctx.closePath();
+            // Her dalga noktasını güncelle ve çiz
+            wavePoints.forEach(point => {
+                point.update(time);
             });
 
-            ctx.filter = 'none'; // Filter reset
+            // Smooth gradient bloblar çiz
+            ctx.globalCompositeOperation = 'lighter';
+
+            wavePoints.forEach(point => {
+                const color = colors[point.colorIndex];
+
+                // Çok büyük ve yumuşak radial gradient
+                const grad = ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, point.radius
+                );
+
+                grad.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, 0.4)`);
+                grad.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, 0.25)`);
+                grad.addColorStop(0.6, `rgba(${color.r}, ${color.g}, ${color.b}, 0.1)`);
+                grad.addColorStop(1, `rgba(${color.r}, ${color.g}, ${color.b}, 0)`);
+
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, point.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Mouse çevresinde subtle darken efekti (glow değil)
+            if (mouse.active) {
+                ctx.globalCompositeOperation = 'multiply';
+                const mouseGrad = ctx.createRadialGradient(
+                    mouse.x, mouse.y, 0,
+                    mouse.x, mouse.y, 200
+                );
+                mouseGrad.addColorStop(0, 'rgba(20, 10, 40, 0.3)');
+                mouseGrad.addColorStop(0.5, 'rgba(30, 15, 50, 0.15)');
+                mouseGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                ctx.fillStyle = mouseGrad;
+                ctx.beginPath();
+                ctx.arc(mouse.x, mouse.y, 200, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.globalCompositeOperation = 'source-over';
+
             requestAnimationFrame(animateFluid);
         }
 
         window.addEventListener('resize', initFluid);
+
         document.addEventListener('mousemove', (e) => {
+            if (!isLoaded) return; // Yüklenmeden mouse etkileşimi yok
             mouse.x = e.clientX;
             mouse.y = e.clientY;
+            mouse.active = true;
         });
+
+        document.addEventListener('mouseleave', () => {
+            mouse.active = false;
+        });
+
         document.addEventListener('touchmove', (e) => {
+            if (!isLoaded) return;
             mouse.x = e.touches[0].clientX;
             mouse.y = e.touches[0].clientY;
+            mouse.active = true;
         }, { passive: true });
+
+        document.addEventListener('touchend', () => {
+            mouse.active = false;
+        });
 
         initFluid();
         animateFluid();
@@ -460,7 +599,7 @@
 
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
-            
+
             if (!hasScrolled && scrollY > 50) {
                 scrollIndicator.style.opacity = '0';
                 hasScrolled = true;
@@ -470,7 +609,7 @@
             const trigger = window.innerHeight * 0.6;
             let val = (scrollY / trigger) * maxBlur;
             if (val > maxBlur) val = maxBlur;
-            
+
             blurLayer.style.backdropFilter = `blur(${val}px)`;
             blurLayer.style.webkitBackdropFilter = `blur(${val}px)`;
         });
