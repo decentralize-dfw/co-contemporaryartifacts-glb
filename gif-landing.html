@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Status Co. | Contemporary Artifacts</title>
+
+    <!-- Comfortaa Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Granim.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/granim/2.0.0/granim.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Comfortaa', cursive;
+            margin: 0;
+            padding: 0;
+            color: #111;
+            overflow-x: hidden;
+            background-color: #1a0b2e;
+        }
+
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        ::-webkit-scrollbar { display: none; }
+
+        /* LOADER */
+        #loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0d0417 0%, #1a0b2e 25%, #2E0E4A 50%, #664B9E 75%, #1a0b2e 100%);
+            background-size: 400% 400%;
+            animation: loaderGradient 3s ease infinite;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s ease;
+        }
+
+        @keyframes loaderGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.15s ease-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .progress-ring__bg {
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* 1. ARKA PLAN */
+        #granim-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -3;
+        }
+
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -2;
+            background: radial-gradient(ellipse at center, transparent 10%, rgba(10, 5, 20, 0.4) 60%, rgba(10, 5, 20, 0.8) 100%);
+            pointer-events: none;
+        }
+
+        /* 2. GIF LAYER */
+        #gif-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -1;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* GIF: ALTTA (Z-INDEX 10) */
+        #main-gif {
+            display: block;
+            opacity: 1; 
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10; 
+        }
+
+        /* PNG: ÜSTTE (Z-INDEX 20) AMA BAŞLANGIÇTA GÖRÜNMEZ (OPACITY 0) */
+        #static-layer-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 20; /* GIF'in üzerinde */
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #static-png {
+            max-width: none; 
+            display: block;
+            opacity: 0; /* Başlangıçta görünmez! */
+            /* JS ile opacity 1 olacak */
+            transition: opacity 0.5s ease; 
+        }
+
+        /* Responsive */
+        @media (min-width: 769px) {
+            #main-gif, #static-png {
+                height: 100%;
+                width: auto;
+            }
+        }
+        @media (max-width: 768px) {
+            #main-gif, #static-png {
+                width: 100%;
+                height: auto;
+                max-height: 80vh;
+            }
+        }
+
+        /* 3. BLUR & UI */
+        #blur-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: 5;
+            pointer-events: none;
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+            mask-image: linear-gradient(to bottom, transparent 0%, black 30%, black 100%);
+        }
+
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.0s ease-out;
+        }
+        .reveal-element.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #scroll-indicator-container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            pointer-events: none;
+        }
+        
+        .stop-scrolling { height: 100%; overflow: hidden; }
+    </style>
+</head>
+<body class="w-full stop-scrolling">
+
+    <!-- LOADER -->
+    <div id="loader-overlay">
+        <div class="relative w-40 h-40 flex items-center justify-center">
+            <svg class="progress-ring" width="160" height="160" viewBox="0 0 160 160">
+                <defs>
+                    <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#BCA6D1"/>
+                        <stop offset="50%" stop-color="#664B9E"/>
+                        <stop offset="100%" stop-color="#2E0E4A"/>
+                    </linearGradient>
+                </defs>
+                <circle class="progress-ring__bg" stroke="rgba(255,255,255,0.08)" stroke-width="3" fill="transparent" r="70" cx="80" cy="80"/>
+                <circle id="progress-indicator" class="progress-ring__circle" stroke="url(#progressGradient)" stroke-width="3" stroke-linecap="round" fill="transparent" r="70" cx="80" cy="80" style="stroke-dasharray: 439.82; stroke-dashoffset: 439.82;"/>
+            </svg>
+            <div class="absolute flex flex-col items-center">
+                <span id="loader-text" class="text-white font-bold text-2xl tracking-wider">0%</span>
+            </div>
+        </div>
+        <div class="mt-6 text-white/40 text-[10px] tracking-[0.4em] uppercase">Contemporary Artifacts</div>
+    </div>
+
+    <!-- 1. GRANIM ARKA PLAN -->
+    <canvas id="granim-canvas"></canvas>
+    <div id="bg-overlay"></div>
+
+    <!-- 2. GIF LAYER -->
+    <div id="gif-layer">
+        <!-- ALT KATMAN: Hareketli GIF (Altta dönecek) -->
+        <img id="main-gif" alt="Animated Logo" crossorigin="anonymous" />
+
+        <!-- ÜST KATMAN: Statik PNG (Üstte belirecek) -->
+        <div id="static-layer-container">
+            <img id="static-png" alt="Static Background" />
+        </div>
+    </div>
+
+    <!-- 3. BLUR LAYER -->
+    <div id="blur-layer"></div>
+
+    <!-- 4. UI -->
+    <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">Scroll</div>
+
+    <div class="relative z-10 w-full" id="main-content" style="opacity: 0; transition: opacity 1s ease;">
+        <div class="w-full h-[80vh] md:h-screen"></div>
+        <section id="textContent" class="w-full flex flex-col items-center justify-center px-2 md:px-0 relative pb-20">
+            <div class="absolute inset-0 bg-transparent pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, transparent 70%);"></div>
+            <div class="max-w-2xl text-center reveal-element relative z-20 mix-blend-screen px-4 md:px-4 mt-10 md:mt-0">
+                <h1 id="mainTitle" class="flex flex-col items-center justify-center text-white drop-shadow-xl mb-6 md:mb-10">
+                    <span class="text-3xl md:text-5xl font-bold tracking-widest uppercase leading-tight">STATUS CO.</span>
+                    <span class="text-lg md:text-3xl font-light italic tracking-wide uppercase mt-2 md:mt-4 text-purple-100">CONTEMPORARY ARTIFACTS</span>
+                    <span class="text-[10px] md:text-xs font-light tracking-[0.4em] uppercase mt-3 md:mt-6 opacity-80 border-t border-white/30 pt-2">DROP 1</span>
+                </h1>
+                <div class="text-[12px] md:text-[16px] leading-6 md:leading-8 space-y-4 md:space-y-6 text-gray-100 font-medium drop-shadow-md">
+                    <p>Status Co. operates as a curation platform where the distinction between daily objects and art is reimagined. Functional designs, crafted in artist studios, are released through a series of limited "drops."</p>
+                    <p>The inaugural collection, "Contemporary Artifacts," presents a selection where form and function converge. In this series, vases with unconventional silhouettes, tactile rugs that transform spatial perception, and stools serving as sculptural interpretations of seating are featured.</p>
+                </div>
+                <div class="w-12 md:w-20 h-[1px] bg-white mx-auto mt-8 md:mt-12 opacity-50"></div>
+                <div class="mt-6 md:mt-10 flex justify-center">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-7 md:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // =========================================================
+        // ZAMANLAMA AYARLARI
+        // =========================================================
+        
+        const STATIC_PNG_URL = "https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logosonframe.png"; 
+
+        // 6.5 Saniye (6500ms) sonra PNG belirmeye başlayacak
+        const GIF_PLAY_DURATION_MS = 6500; 
+
+        // 0.5 Saniye (500ms) boyunca fade-in sürecek
+        const FADE_DURATION_MS = 500;
+
+        const GIF_URL = "https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-V5.gif";
+
+        // =========================================================
+
+        const progressCircle = document.getElementById('progress-indicator');
+        const loaderText = document.getElementById('loader-text');
+        const loaderOverlay = document.getElementById('loader-overlay');
+        const gifImg = document.getElementById('main-gif');
+        const staticPng = document.getElementById('static-png');
+        const mainContent = document.getElementById('main-content');
+        const circumference = 439.82;
+        
+        let isLoaded = false;
+        let transitionStarted = false;
+        let blobUrl = null;
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', GIF_URL, true);
+        xhr.responseType = 'blob';
+
+        xhr.onprogress = function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                setProgress(percent);
+            }
+        };
+
+        xhr.onload = function() {
+            if (this.status === 200) {
+                const blob = this.response;
+                blobUrl = URL.createObjectURL(blob);
+
+                // PNG yükle
+                staticPng.src = STATIC_PNG_URL;
+                // PNG yüklense bile opacity CSS'de 0 olduğu için görünmez!
+
+                gifImg.onload = function() {
+                    // GIF hazır, sayaç başlar
+                    setTimeout(triggerTransition, GIF_PLAY_DURATION_MS);
+                    
+                    isLoaded = true;
+                    finishLoading();
+                    resizeAllLayers();
+                };
+
+                gifImg.src = blobUrl;
+            }
+        };
+
+        xhr.send();
+
+        function setProgress(percent) {
+            const offset = circumference - (percent / 100) * circumference;
+            progressCircle.style.strokeDashoffset = offset;
+            loaderText.innerText = `${percent}%`;
+        }
+
+        function finishLoading() {
+            document.body.classList.remove('stop-scrolling');
+            loaderOverlay.style.opacity = '0';
+            setTimeout(() => { loaderOverlay.style.display = 'none'; }, 800);
+            
+            // Sadece GIF görünür, PNG gizli (opacity 0)
+            gifImg.style.opacity = '1';
+            mainContent.style.opacity = '1';
+        }
+
+        function triggerTransition() {
+            if (transitionStarted) return;
+            transitionStarted = true;
+
+            // 1. PNG'yi Yavaşça Göster (Fade In)
+            // PNG, GIF'in ÜZERİNDE (z-index yüksek) olduğu için
+            // yavaşça belirdiğinde alttaki GIF'i örtecek.
+            staticPng.style.transition = `opacity ${FADE_DURATION_MS}ms ease`;
+            staticPng.style.opacity = '1';
+
+            // 2. Geçiş bittiğinde GIF'i arkadan kaldır
+            // Bu "çift dikiş" temizlik sağlar.
+            setTimeout(() => {
+                gifImg.style.display = 'none';
+                if (blobUrl) URL.revokeObjectURL(blobUrl);
+            }, FADE_DURATION_MS);
+
+            window.addEventListener('resize', resizeAllLayers);
+        }
+
+        function resizeAllLayers() {
+            const windowHeight = window.innerHeight;
+            const windowWidth = window.innerWidth;
+            
+            let ratio = 1.0;
+            if (gifImg.naturalWidth && gifImg.naturalHeight) {
+                ratio = gifImg.naturalWidth / gifImg.naturalHeight;
+            }
+
+            let newWidth, newHeight;
+
+            if (window.innerWidth >= 769) {
+                newHeight = windowHeight;
+                newWidth = windowHeight * ratio;
+            } else {
+                newWidth = windowWidth;
+                newHeight = windowWidth / ratio;
+                
+                if (newHeight > windowHeight * 0.8) {
+                    newHeight = windowHeight * 0.8;
+                    newWidth = newHeight * ratio;
+                }
+            }
+
+            gifImg.style.width = `${newWidth}px`;
+            gifImg.style.height = `${newHeight}px`;
+
+            if (staticPng) {
+                staticPng.style.width = `${newWidth}px`;
+                staticPng.style.height = `${newHeight}px`;
+            }
+        }
+
+        // --- Diğer Helperlar ---
+        var granimInstance = new Granim({
+            element: '#granim-canvas',
+            direction: 'diagonal',
+            isPausedWhenNotInView: true,
+            stateTransitionSpeed: 1000,
+            states: {
+                "default-state": {
+                    gradients: [
+                        ['#2E0E4A', '#3d1a5c'], ['#3d1a5c', '#664B9E'],
+                        ['#664B9E', '#4a2d7a'], ['#4a2d7a', '#2E0E4A'],
+                        ['#2E0E4A', '#553d7d'], ['#553d7d', '#7a5aa0'],
+                        ['#7a5aa0', '#664B9E'], ['#664B9E', '#2E0E4A']
+                    ],
+                    transitionSpeed: 3000,
+                    loop: true
+                }
+            }
+        });
+
+        const setAppHeight = () => { document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`); };
+        window.addEventListener('resize', () => { setAppHeight(); resizeAllLayers(); });
+        setAppHeight();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
+
+        const blurLayer = document.getElementById('blur-layer');
+        const scrollIndicator = document.getElementById('scroll-indicator-container');
+        let hasScrolled = false;
+
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            if (!hasScrolled && scrollY > 50) { scrollIndicator.style.opacity = '0'; hasScrolled = true; }
+            const maxBlur = 16;
+            let val = (scrollY / (window.innerHeight * 0.6)) * maxBlur;
+            if (val > maxBlur) val = maxBlur;
+            blurLayer.style.backdropFilter = `blur(${val}px)`;
+            blurLayer.style.webkitBackdropFilter = `blur(${val}px)`;
+        });
+    </script>
+</body>
+</html>
