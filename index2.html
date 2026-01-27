@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Status Co. | Contemporary Artifacts</title>
+
+    <!-- Space Mono Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Granim.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/granim/2.0.0/granim.min.js"></script>
+
+    <!-- Spline Viewer Script -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js"></script>
+
+    <style>
+        body {
+            font-family: 'Space Mono', monospace;
+            margin: 0;
+            padding: 0;
+            color: #111;
+            overflow-x: hidden;
+            background-color: #29174d; /* Ana koyu renk */
+        }
+
+        html, body {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        ::-webkit-scrollbar { display: none; }
+
+        /* 1. ARKA PLAN */
+        #granim-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -3;
+        }
+
+        #bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -2;
+            background: radial-gradient(ellipse at center, transparent 10%, rgba(41, 23, 77, 0.4) 60%, rgba(41, 23, 77, 0.8) 100%);
+            pointer-events: none;
+        }
+
+        /* 2. SPLINE LAYER */
+        #canvas-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: -1; 
+            padding: 0; 
+            pointer-events: none; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+
+        spline-viewer {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        spline-viewer::part(logo) {
+            display: none;
+        }
+
+        /* 3. BLUR LAYER (GERİ GELDİ - Maskesiz) */
+        #blur-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: var(--app-height, 100vh);
+            z-index: 5; /* Spline'ın üstünde, Yazının altında */
+            pointer-events: none;
+            /* Başlangıçta blur yok */
+            backdrop-filter: blur(0px);
+            -webkit-backdrop-filter: blur(0px);
+            transition: backdrop-filter 0.1s linear; /* Yumuşak anlık geçiş */
+        }
+
+        /* 4. UI */
+        .reveal-element {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.0s ease-out;
+        }
+        .reveal-element.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #scroll-indicator-container {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="w-full">
+
+    <!-- 1. GRANIM ARKA PLAN -->
+    <canvas id="granim-canvas"></canvas>
+    <div id="bg-overlay"></div>
+
+    <!-- 2. SPLINE LAYER -->
+    <div id="canvas-layer">
+        <spline-viewer url="https://prod.spline.design/X-xNpCt05N7o8w7p/scene.splinecode"></spline-viewer>
+    </div>
+
+    <!-- 3. BLUR LAYER -->
+    <div id="blur-layer"></div>
+
+    <!-- 4. UI -->
+    <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">Scroll</div>
+
+    <!-- Main Content -->
+    <div class="relative z-10 w-full" id="main-content">
+        <div class="w-full h-[80vh] md:h-screen"></div>
+        <section id="textContent" class="w-full flex flex-col items-center justify-center px-2 md:px-0 relative pb-20">
+            <!-- Hafif karartma (vignette) yazının okunurluğunu artırır -->
+            <div class="absolute inset-0 bg-transparent pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, transparent 70%);"></div>
+            
+            <div class="max-w-2xl text-center reveal-element relative z-20 mix-blend-screen px-4 md:px-4 mt-10 md:mt-0">
+                
+                <!-- LOGO KISMI -->
+                <div id="mainTitle" class="flex flex-col items-center justify-center mb-6 md:mb-10 w-full">
+                    <img 
+                        src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" 
+                        alt="Status Co. Logo" 
+                        class="w-1/2 h-auto drop-shadow-xl"
+                    />
+                </div>
+
+
+
+              <div class="text-[12px] md:text-[14px] leading-7 md:leading-8 space-y-6 md:space-y-8 text-gray-100 font-medium drop-shadow-md tracking-tight">
+                    
+                    <h2 class="text-white font-bold tracking-[0.15em] mb-4 text-sm md:text-base block">
+                        DROP 001: CONTEMPORARY ARTIFACTS
+                    </h2>
+
+                    <p>Status co is not a concept store. It is a cultural studio producing contemporary collectibles.</p>
+                    
+                    <p>A bridge between the art world and everyday rituals. These functional artifacts are designed to turn daily moments into encounters with culture.</p>
+                    
+                    <p>Status co connects artists and designers to create limited editions that challenge what everyday life can look like. Each piece carries intention, imagination, and the trace of the hand.</p>
+                    
+                    <p>Art is meant to be lived with, not locked away. These are not mass products, but ideas to be held.</p>
+                    
+                    <p>Not merch. Not lifestyle items. A proposal for living with culture.</p>
+
+                    <div class="pt-6 font-bold tracking-wide space-y-2 text-white/90">
+                        <p>COLLECT IDEAS, NOT OBJECTS. USE ART DAILY.</p>
+                        <p>LIVE THOUGHTFULLY.</p>
+                    </div>
+                </div>
+                <div class="w-12 md:w-20 h-[1px] bg-white mx-auto mt-8 md:mt-12 opacity-50"></div>
+                <div class="mt-6 md:mt-10 flex justify-center">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-7 md:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // =========================================================
+        // GRANIM & UI
+        // =========================================================
+
+        var granimInstance = new Granim({
+            element: '#granim-canvas',
+            direction: 'diagonal',
+            isPausedWhenNotInView: true,
+            stateTransitionSpeed: 1000,
+            states: {
+                "default-state": {
+                    // #b6a5d0 (light), #625eaa (mid), #29174d (dark)
+                    gradients: [
+                        ['#29174d', '#625eaa'], // Dark -> Mid
+                        ['#625eaa', '#b6a5d0'], // Mid -> Light
+                        ['#b6a5d0', '#625eaa'], // Light -> Mid
+                        ['#625eaa', '#29174d']  // Mid -> Dark
+                    ],
+                    transitionSpeed: 3000,
+                    loop: true
+                }
+            }
+        });
+
+        const setAppHeight = () => { document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`); };
+        window.addEventListener('resize', () => { setAppHeight(); });
+        setAppHeight();
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
+
+        const scrollIndicator = document.getElementById('scroll-indicator-container');
+        const blurLayer = document.getElementById('blur-layer');
+        let hasScrolled = false;
+
+        // BLUR MANTIĞI: Scroll ile homojen artış
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+
+            // Scroll göstergesi gizleme
+            if (!hasScrolled && scrollY > 50) { 
+                scrollIndicator.style.opacity = '0'; 
+                hasScrolled = true; 
+            }
+
+            // Blur Hesabı:
+            // 0px'den başla, ekranın yarısı kadar scroll edildiğinde maksimuma ulaş.
+            // Sınır/Çizgi yok, tüm ekran aynı anda bulanıklaşır.
+            const maxBlur = 20; // Maksimum blur miktarı (px)
+            const triggerHeight = windowHeight * 0.5; // Ekranın %50'si kadar inince max olsun
+
+            let blurAmount = (scrollY / triggerHeight) * maxBlur;
+            
+            // Max değeri aşma
+            if (blurAmount > maxBlur) blurAmount = maxBlur;
+
+            // Blur'u uygula
+            blurLayer.style.backdropFilter = `blur(${blurAmount}px)`;
+            blurLayer.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
+        });
+    </script>
+</body>
+</html>
