@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Viewport ayarı: user-scalable=no ve maximum-scale=1.0 mobil uygulama hissi verir -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Status Co. | Contemporary Artifacts</title>
 
     <!-- Space Mono Font -->
@@ -20,59 +21,60 @@
     <script type="module" src="https://unpkg.com/@splinetool/viewer@1.12.39/build/spline-viewer.js"></script>
 
     <style>
+        /* TEMEL AYARLAR */
         body {
             font-family: 'Space Mono', monospace;
             margin: 0;
             padding: 0;
             color: #111;
+            background-color: #29174d; /* Ana renk - yüklenirken görünür */
+            
+            /* MOBİL SCROLL FIX: */
+            /* Sayfa içeriği dikeyde taşabilir ama yatayda asla taşamaz */
             overflow-x: hidden;
-            background-color: #29174d; /* Ana koyu renk */
+            
+            /* Adres barı oynasa bile en az ekran boyu kadar yer kapla */
+            min-height: 100vh;
+            min-height: 100dvh;
         }
 
+        /* Scrollbar Gizleme */
         html, body {
             scrollbar-width: none;
             -ms-overflow-style: none;
         }
         ::-webkit-scrollbar { display: none; }
 
-        /* 1. ARKA PLAN */
-        #granim-canvas {
+        /* ARKA PLAN KATMANLARI İÇİN ORTAK CLASS */
+        /* Bu class sayesinde mobilde adres barı değişse bile backgroundlar oynamaz */
+        .fixed-bg-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
-            height: var(--app-height, 100vh);
+            height: 100vh;  /* Fallback */
+            height: 100dvh; /* Mobil modern tarayıcılar için dinamik yükseklik */
+            pointer-events: none; /* Tıklamalar arkaya geçmesin, sadece görsel */
+        }
+
+        /* 1. GRANIM (Renk Geçişi) */
+        #granim-canvas {
             z-index: -3;
         }
 
+        /* 2. OVERLAY (Vinyet Etkisi) */
         #bg-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            height: var(--app-height, 100vh);
             z-index: -2;
-            background: radial-gradient(ellipse at center, transparent 10%, rgba(41, 23, 77, 0.4) 60%, rgba(41, 23, 77, 0.8) 100%);
-            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 10%, rgba(41, 23, 77, 0.4) 60%, rgba(41, 23, 77, 0.9) 100%);
         }
 
-        /* 2. SPLINE LAYER */
+        /* 3. SPLINE (3D Model) */
         #canvas-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            height: var(--app-height, 100vh);
-            z-index: -1; 
-            padding: 0; 
-            pointer-events: none; 
+            z-index: -1;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: transform 0.3s ease;
+            padding: 0;
         }
 
         spline-viewer {
@@ -81,27 +83,20 @@
             display: block;
         }
         
+        /* Spline logosunu gizle */
         spline-viewer::part(logo) {
             display: none;
         }
 
-        /* 3. BLUR LAYER (GERİ GELDİ - Maskesiz) */
+        /* 4. BLUR LAYER (Bulanıklık) */
         #blur-layer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            height: var(--app-height, 100vh);
-            z-index: 5; /* Spline'ın üstünde, Yazının altında */
-            pointer-events: none;
-            /* Başlangıçta blur yok */
+            z-index: 5; /* 3D modelin üstünde, yazının altında */
             backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(0px);
-            transition: backdrop-filter 0.1s linear; /* Yumuşak anlık geçiş */
+            transition: backdrop-filter 0.1s linear; /* Anlık takılmayı önleyen yumuşak geçiş */
         }
 
-        /* 4. UI */
+        /* ANİMASYON VE UI */
         .reveal-element {
             opacity: 0;
             transform: translateY(30px);
@@ -121,48 +116,65 @@
             transition: opacity 0.8s ease, visibility 0.8s ease;
             pointer-events: none;
         }
+        
+        /* Insta icon hover effect */
+        .insta-icon {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0.8;
+        }
+        .insta-icon:hover {
+            transform: scale(1.1);
+            opacity: 1;
+        }
     </style>
 </head>
 <body class="w-full">
 
     <!-- 1. GRANIM ARKA PLAN -->
-    <canvas id="granim-canvas"></canvas>
-    <div id="bg-overlay"></div>
+    <canvas id="granim-canvas" class="fixed-bg-layer"></canvas>
+    <div id="bg-overlay" class="fixed-bg-layer"></div>
 
     <!-- 2. SPLINE LAYER -->
-    <div id="canvas-layer">
+    <div id="canvas-layer" class="fixed-bg-layer">
         <spline-viewer url="https://prod.spline.design/X-xNpCt05N7o8w7p/scene.splinecode"></spline-viewer>
     </div>
 
     <!-- 3. BLUR LAYER -->
-    <div id="blur-layer"></div>
+    <div id="blur-layer" class="fixed-bg-layer"></div>
 
-    <!-- 4. UI -->
+    <!-- 4. UI: SCROLL GÖSTERGESİ -->
     <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">Scroll</div>
 
-    <!-- Main Content -->
+    <!-- 5. ANA İÇERİK (SCROLL EDİLEBİLİR ALAN) -->
     <div class="relative z-10 w-full" id="main-content">
-        <div class="w-full h-[80vh] md:h-screen"></div>
-        <section id="textContent" class="w-full flex flex-col items-center justify-center px-2 md:px-0 relative pb-20">
-            <!-- Hafif karartma (vignette) yazının okunurluğunu artırır -->
-            <div class="absolute inset-0 bg-transparent pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, transparent 70%);"></div>
+        
+        <!-- Boşluk Bırakıcı (3D modelin ilk açılışta net görünmesi için) -->
+        <div class="w-full h-[75vh] md:h-screen"></div>
+
+        <!-- Yazı İçeriği -->
+        <section id="textContent" class="w-full flex flex-col items-center justify-center px-4 md:px-0 relative pb-20">
             
-            <div class="max-w-2xl text-center reveal-element relative z-20 mix-blend-screen px-4 md:px-4 mt-10 md:mt-0">
+            <!-- Yazının arkasında hafif bir karartma (Okunurluk için ekstra güvenlik) -->
+            <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, transparent 70%);"></div>
+            
+            <div class="max-w-xl text-center reveal-element relative z-20 mix-blend-screen mt-4 md:mt-0">
                 
-                <!-- LOGO KISMI -->
-                <div id="mainTitle" class="flex flex-col items-center justify-center mb-6 md:mb-10 w-full">
+                <!-- LOGO -->
+                <div id="mainTitle" class="flex flex-col items-center justify-center mb-8 w-full">
                     <img 
                         src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" 
                         alt="Status Co. Logo" 
-                        class="w-1/2 h-auto drop-shadow-xl"
+                        class="w-3/5 md:w-1/2 h-auto drop-shadow-2xl"
                     />
                 </div>
 
-
-
-              <div class="text-[12px] md:text-[14px] leading-7 md:leading-8 space-y-3 md:space-y-4 text-gray-100 font-medium drop-shadow-md tracking-tight">
+                <!-- METİN BLOKU -->
+                <!-- text-xs (mobil) -> md:text-sm (masaüstü) ile responsive font -->
+                <!-- space-y-3 ile paragraflar arası dar boşluk -->
+                <div class="text-xs md:text-sm leading-6 md:leading-8 space-y-3 md:space-y-4 text-gray-100 font-medium drop-shadow-lg tracking-tight px-2">
                     
-                    <h2 class="text-white font-bold tracking-[0.15em] mb-2 text-sm md:text-base block">
+                    <!-- BAŞLIK -->
+                    <h2 class="text-white font-bold tracking-[0.15em] mb-3 text-sm md:text-base block">
                         DROP 001: CONTEMPORARY ARTIFACTS
                     </h2>
 
@@ -176,14 +188,19 @@
                     
                     <p>Not merch. Not lifestyle items. A proposal for living with culture.</p>
 
-                    <div class="pt-4 font-bold tracking-wide space-y-1 text-white/90">
+                    <!-- SLOGANLAR (VURGULU) -->
+                    <div class="pt-5 font-bold tracking-wide space-y-1 text-white/90">
                         <p>COLLECT IDEAS, NOT OBJECTS. USE ART DAILY.</p>
                         <p>LIVE THOUGHTFULLY.</p>
                     </div>
                 </div>
-                <div class="w-12 md:w-20 h-[1px] bg-white mx-auto mt-8 md:mt-12 opacity-50"></div>
-                <div class="mt-6 md:mt-10 flex justify-center">
-                    <a href="https://instagram.com/_status_co" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
+
+                <!-- ÇİZGİ AYIRICI -->
+                <div class="w-12 md:w-16 h-[1px] bg-white mx-auto mt-10 opacity-50"></div>
+                
+                <!-- INSTAGRAM LINK -->
+                <div class="mt-8 flex justify-center">
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-7 md:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
                             <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
@@ -191,15 +208,15 @@
                         </svg>
                     </a>
                 </div>
+
             </div>
         </section>
     </div>
 
     <script>
         // =========================================================
-        // GRANIM & UI
+        // 1. GRANIM (ARKA PLAN RENK GEÇİŞİ)
         // =========================================================
-
         var granimInstance = new Granim({
             element: '#granim-canvas',
             direction: 'diagonal',
@@ -207,12 +224,12 @@
             stateTransitionSpeed: 1000,
             states: {
                 "default-state": {
-                    // #b6a5d0 (light), #625eaa (mid), #29174d (dark)
+                    // Renk paleti: Koyu Mor -> Orta Mor -> Açık Lavanta
                     gradients: [
-                        ['#29174d', '#625eaa'], // Dark -> Mid
-                        ['#625eaa', '#b6a5d0'], // Mid -> Light
-                        ['#b6a5d0', '#625eaa'], // Light -> Mid
-                        ['#625eaa', '#29174d']  // Mid -> Dark
+                        ['#29174d', '#625eaa'],
+                        ['#625eaa', '#b6a5d0'],
+                        ['#b6a5d0', '#625eaa'],
+                        ['#625eaa', '#29174d']
                     ],
                     transitionSpeed: 3000,
                     loop: true
@@ -220,42 +237,51 @@
             }
         });
 
-        const setAppHeight = () => { document.documentElement.style.setProperty('--app-height', `${window.innerHeight}px`); };
-        window.addEventListener('resize', () => { setAppHeight(); });
-        setAppHeight();
-
+        // =========================================================
+        // 2. REVEAL ANIMATION (YAZILARIN GELİŞİ)
+        // =========================================================
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
         }, { threshold: 0.1 });
+
         document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
 
+        // =========================================================
+        // 3. SCROLL EFEKTLERİ (BLUR + GÖSTERGE GİZLEME)
+        // =========================================================
         const scrollIndicator = document.getElementById('scroll-indicator-container');
         const blurLayer = document.getElementById('blur-layer');
         let hasScrolled = false;
 
-        // BLUR MANTIĞI: Scroll ile homojen artış
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
             const windowHeight = window.innerHeight;
 
-            // Scroll göstergesi gizleme
+            // SCROLL INDICATOR GİZLEME
             if (!hasScrolled && scrollY > 50) { 
                 scrollIndicator.style.opacity = '0'; 
                 hasScrolled = true; 
+            } else if (scrollY < 50 && hasScrolled) {
+                // En tepeye çıkarsa geri getir (opsiyonel)
+                scrollIndicator.style.opacity = '1';
+                hasScrolled = false;
             }
 
-            // Blur Hesabı:
-            // 0px'den başla, ekranın yarısı kadar scroll edildiğinde maksimuma ulaş.
-            // Sınır/Çizgi yok, tüm ekran aynı anda bulanıklaşır.
-            const maxBlur = 20; // Maksimum blur miktarı (px)
-            const triggerHeight = windowHeight * 0.5; // Ekranın %50'si kadar inince max olsun
+            // DİNAMİK BLUR HESABI
+            // Ekranın %40'ına gelindiğinde maksimum bulanıklığa ulaşsın
+            const maxBlur = 20; 
+            const triggerHeight = windowHeight * 0.4; 
 
             let blurAmount = (scrollY / triggerHeight) * maxBlur;
             
             // Max değeri aşma
             if (blurAmount > maxBlur) blurAmount = maxBlur;
 
-            // Blur'u uygula
+            // Efekti uygula
             blurLayer.style.backdropFilter = `blur(${blurAmount}px)`;
             blurLayer.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
         });
