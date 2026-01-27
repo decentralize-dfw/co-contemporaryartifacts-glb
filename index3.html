@@ -29,11 +29,8 @@
             color: #111;
             background-color: #29174d; /* Ana renk - yüklenirken görünür */
             
-            /* MOBİL SCROLL FIX: */
-            /* Sayfa içeriği dikeyde taşabilir ama yatayda asla taşamaz */
+            /* MOBİL SCROLL FIX */
             overflow-x: hidden;
-            
-            /* Adres barı oynasa bile en az ekran boyu kadar yer kapla */
             min-height: 100vh;
             min-height: 100dvh;
         }
@@ -45,24 +42,19 @@
         }
         ::-webkit-scrollbar { display: none; }
 
-        /* ARKA PLAN KATMANLARI İÇİN ORTAK CLASS */
-        /* Bu class sayesinde mobilde adres barı değişse bile backgroundlar oynamaz */
+        /* ARKA PLAN KATMANLARI */
         .fixed-bg-layer {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;  /* Fallback */
-            height: 100dvh; /* Mobil modern tarayıcılar için dinamik yükseklik */
-            pointer-events: none; /* Tıklamalar arkaya geçmesin, sadece görsel */
+            height: 100vh;
+            height: 100dvh;
+            pointer-events: none;
         }
 
-        /* 1. GRANIM (Renk Geçişi) */
-        #granim-canvas {
-            z-index: -3;
-        }
-
-        /* 2. OVERLAY (Vinyet Etkisi) */
+        #granim-canvas { z-index: -3; }
+        
         #bg-overlay {
             z-index: -2;
             background: radial-gradient(ellipse at center, transparent 10%, rgba(41, 23, 77, 0.4) 60%, rgba(41, 23, 77, 0.9) 100%);
@@ -75,34 +67,44 @@
             align-items: center;
             justify-content: center;
             padding: 0;
+            /* Mobilde taşmayı önlemek için */
+            overflow: hidden; 
         }
 
         spline-viewer {
             width: 100%;
             height: 100%;
             display: block;
+            transition: transform 0.3s ease;
         }
         
-        /* Spline logosunu gizle */
-        spline-viewer::part(logo) {
-            display: none;
-        }
+        spline-viewer::part(logo) { display: none; }
 
-        /* MOBİL İÇİN SPLINE AYARI */
-        /* Mobilde yanlardan %5'er (toplam %10) boşluk bırakarak küçültme */
+        /* MOBİL İÇİN SPLINE AYARI (SCALE) */
         @media (max-width: 768px) {
             spline-viewer {
-                width: 90%;
-                height: 90%; /* Orantılı küçülmesi için yüksekliği de ayarladık */
+                /* Genişliği daraltmak yerine SCALE ile küçültüyoruz.
+                   Böylece "crop" (kırpma) olmaz, görsel komple küçülür. */
+                transform: scale(0.85);
+                transform-origin: center center;
+                width: 100%;
+                height: 100%;
             }
         }
 
-        /* 4. BLUR LAYER (Bulanıklık) */
+        /* 4. BLUR LAYER */
         #blur-layer {
-            z-index: 5; /* 3D modelin üstünde, yazının altında */
+            z-index: 5;
             backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(0px);
-            transition: backdrop-filter 0.1s linear; /* Anlık takılmayı önleyen yumuşak geçiş */
+            /* Transition kaldırıldı, scroll ile anlık senkronize olacak */
+        }
+
+        /* TEXT JUSTIFY + CENTER LAST */
+        .justify-center-last {
+            text-align: justify;
+            -moz-text-align-last: center;
+            text-align-last: center;
         }
 
         /* ANİMASYON VE UI */
@@ -126,7 +128,6 @@
             pointer-events: none;
         }
         
-        /* Insta icon hover effect */
         .insta-icon {
             transition: transform 0.3s ease, opacity 0.3s ease;
             opacity: 0.8;
@@ -154,23 +155,24 @@
     <!-- 4. UI: SCROLL GÖSTERGESİ -->
     <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">Scroll</div>
 
-    <!-- 5. ANA İÇERİK (SCROLL EDİLEBİLİR ALAN) -->
+    <!-- 5. ANA İÇERİK -->
     <div class="relative z-10 w-full" id="main-content">
         
-        <!-- Boşluk Bırakıcı: Hem mobilde hem masaüstünde tam ekran (h-screen) -->
-        <!-- Böylece içerik "fold"un altında kalır, scroll ile gelir -->
+        <!-- Boşluk Bırakıcı (İlk ekran boş) -->
         <div class="w-full h-screen"></div>
 
-        <!-- Yazı İçeriği -->
-        <section id="textContent" class="w-full flex flex-col items-center justify-center px-4 md:px-0 relative pb-20">
+        <!-- Yazı İçeriği Alanı -->
+        <!-- min-h-screen: İçerik az olsa bile en az bir ekran boyu yer kapla -->
+        <!-- flex & justify-center: İçeriği dikey ve yatay ortala -->
+        <section id="textContent" class="w-full min-h-[100dvh] flex flex-col items-center justify-center px-4 md:px-0 relative py-10 md:py-20">
             
-            <!-- Yazının arkasında hafif bir karartma (Okunurluk için ekstra güvenlik) -->
             <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, transparent 70%);"></div>
             
-            <div class="max-w-xl text-center reveal-element relative z-20 mix-blend-screen mt-4 md:mt-0">
+            <div class="max-w-xl w-full text-center reveal-element relative z-20 mix-blend-screen">
                 
                 <!-- LOGO -->
-                <div id="mainTitle" class="flex flex-col items-center justify-center mb-8 w-full">
+                <!-- Mobilde margin-bottom azaltıldı (mb-4) -->
+                <div id="mainTitle" class="flex flex-col items-center justify-center mb-5 md:mb-8 w-full">
                     <img 
                         src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" 
                         alt="Status Co. Logo" 
@@ -179,12 +181,15 @@
                 </div>
 
                 <!-- METİN BLOKU -->
-                <!-- text-xs (mobil) -> md:text-sm (masaüstü) ile responsive font -->
-                <!-- space-y-3 ile paragraflar arası dar boşluk -->
-                <div class="text-xs md:text-sm leading-6 md:leading-8 space-y-3 md:space-y-4 text-gray-100 font-medium drop-shadow-lg tracking-tight px-2">
+                <!-- Mobil Ayarları: 
+                     text-xs (12px), 
+                     leading-5 (Satır araları sıkı), 
+                     space-y-2 (Paragraf araları sıkı) -->
+                <!-- justify-center-last class'ı eklendi -->
+                <div class="text-xs md:text-sm leading-5 md:leading-8 space-y-2 md:space-y-4 text-gray-100 font-medium drop-shadow-lg tracking-tight px-3 justify-center-last">
                     
                     <!-- BAŞLIK -->
-                    <h2 class="text-white font-bold tracking-[0.15em] mb-3 text-sm md:text-base block">
+                    <h2 class="text-white font-bold tracking-[0.15em] mb-2 md:mb-3 text-sm md:text-base block text-center">
                         DROP 001: CONTEMPORARY ARTIFACTS
                     </h2>
 
@@ -198,18 +203,19 @@
                     
                     <p>Not merch. Not lifestyle items. A proposal for living with culture.</p>
 
-                    <!-- SLOGANLAR (VURGULU) -->
-                    <div class="pt-5 font-bold tracking-wide space-y-1 text-white/90">
+                    <!-- SLOGANLAR -->
+                    <!-- Mobilde padding-top azaltıldı (pt-3) -->
+                    <div class="pt-3 md:pt-5 font-bold tracking-wide space-y-1 text-white/90 text-center">
                         <p>COLLECT IDEAS, NOT OBJECTS. USE ART DAILY.</p>
                         <p>LIVE THOUGHTFULLY.</p>
                     </div>
                 </div>
 
                 <!-- ÇİZGİ AYIRICI -->
-                <div class="w-12 md:w-16 h-[1px] bg-white mx-auto mt-10 opacity-50"></div>
+                <div class="w-12 md:w-16 h-[1px] bg-white mx-auto mt-6 md:mt-10 opacity-50"></div>
                 
                 <!-- INSTAGRAM LINK -->
-                <div class="mt-8 flex justify-center">
+                <div class="mt-6 md:mt-8 flex justify-center">
                     <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="insta-icon text-white" aria-label="Instagram">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 md:w-7 md:h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -225,7 +231,7 @@
 
     <script>
         // =========================================================
-        // 1. GRANIM (ARKA PLAN RENK GEÇİŞİ)
+        // 1. GRANIM
         // =========================================================
         var granimInstance = new Granim({
             element: '#granim-canvas',
@@ -234,7 +240,6 @@
             stateTransitionSpeed: 1000,
             states: {
                 "default-state": {
-                    // Renk paleti: Koyu Mor -> Orta Mor -> Açık Lavanta
                     gradients: [
                         ['#29174d', '#625eaa'],
                         ['#625eaa', '#b6a5d0'],
@@ -248,7 +253,7 @@
         });
 
         // =========================================================
-        // 2. REVEAL ANIMATION (YAZILARIN GELİŞİ)
+        // 2. REVEAL ANIMATION
         // =========================================================
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
@@ -261,7 +266,7 @@
         document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
 
         // =========================================================
-        // 3. SCROLL EFEKTLERİ (BLUR + GÖSTERGE GİZLEME)
+        // 3. SCROLL EFEKTLERİ (YENİ BLUR MANTIĞI)
         // =========================================================
         const scrollIndicator = document.getElementById('scroll-indicator-container');
         const blurLayer = document.getElementById('blur-layer');
@@ -269,29 +274,30 @@
 
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
-            const windowHeight = window.innerHeight;
+            
+            // Toplam scroll edilebilir alan (Sayfa boyu - Pencere boyu)
+            const maxScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+            
+            // Scroll Yüzdesi (0.0 ile 1.0 arası)
+            let scrollPercent = scrollY / maxScrollHeight;
+            
+            // Güvenlik sınırı (1'i geçmesin)
+            if (scrollPercent > 1) scrollPercent = 1;
+            if (scrollPercent < 0) scrollPercent = 0;
 
-            // SCROLL INDICATOR GİZLEME
+            // SCROLL INDICATOR
             if (!hasScrolled && scrollY > 50) { 
                 scrollIndicator.style.opacity = '0'; 
                 hasScrolled = true; 
             } else if (scrollY < 50 && hasScrolled) {
-                // En tepeye çıkarsa geri getir (opsiyonel)
                 scrollIndicator.style.opacity = '1';
                 hasScrolled = false;
             }
 
-            // DİNAMİK BLUR HESABI
-            // Ekranın %40'ına gelindiğinde maksimum bulanıklığa ulaşsın
+            // BLUR UYGULAMA (Scroll %0 -> Blur 0px, Scroll %100 -> Blur 20px)
             const maxBlur = 20; 
-            const triggerHeight = windowHeight * 0.4; 
-
-            let blurAmount = (scrollY / triggerHeight) * maxBlur;
+            let blurAmount = scrollPercent * maxBlur;
             
-            // Max değeri aşma
-            if (blurAmount > maxBlur) blurAmount = maxBlur;
-
-            // Efekti uygula
             blurLayer.style.backdropFilter = `blur(${blurAmount}px)`;
             blurLayer.style.webkitBackdropFilter = `blur(${blurAmount}px)`;
         });
