@@ -27,12 +27,8 @@
             margin: 0;
             padding: 0;
             color: #111;
-            background-color: #29174d; /* Ana renk - yüklenirken görünür */
-            
-            /* MOBİL SCROLL FIX */
+            background-color: #29174d; /* Ana renk */
             overflow-x: hidden;
-            min-height: 100vh;
-            min-height: 100dvh;
         }
 
         /* Scrollbar Gizleme */
@@ -42,14 +38,18 @@
         }
         ::-webkit-scrollbar { display: none; }
 
-        /* ARKA PLAN KATMANLARI */
-        .fixed-bg-layer {
+        /* 1. ARKA PLAN KATMANLARI (Gradient ve Overlay)
+           Sorun: Adres barı gidince altta boşluk kalması.
+           Çözüm: height: 100lvh (Large Viewport Height). 
+           Bu, ekranın alabileceği EN BÜYÜK yüksekliği baz alır.
+        */
+        .bg-layer-full {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100vh;
-            height: 100dvh;
+            height: 100vh;  /* Fallback */
+            height: 100lvh; /* KRİTİK AYAR: Her zaman en uzun hali kapla */
             pointer-events: none;
         }
 
@@ -60,14 +60,23 @@
             background: radial-gradient(ellipse at center, transparent 10%, rgba(41, 23, 77, 0.4) 60%, rgba(41, 23, 77, 0.9) 100%);
         }
 
-        /* 3. SPLINE (3D Model) */
+        /* 2. SPLINE (3D Model) KATMANI
+           Sorun: Adres barı gidince ekran uzuyor, "center" noktası değişiyor ve obje kayıyor.
+           Çözüm: height: 100svh (Small Viewport Height).
+           Bu, adres barı AÇIKKENKİ yüksekliği baz alır ve ASLA DEĞİŞMEZ.
+        */
         #canvas-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;  /* Fallback */
+            height: 100svh; /* KRİTİK AYAR: Yükseklik sabit kalır, zıplama yapmaz */
             z-index: -1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 0;
-            /* Mobilde taşmayı önlemek için */
             overflow: hidden; 
         }
 
@@ -83,9 +92,8 @@
         /* MOBİL İÇİN SPLINE AYARI (SCALE) */
         @media (max-width: 768px) {
             spline-viewer {
-                /* Genişliği daraltmak yerine SCALE ile küçültüyoruz.
-                   Böylece "crop" (kırpma) olmaz, görsel komple küçülür. */
-                transform: scale(0.85);
+                /* Scale 0.75: Obje küçülür, yanlardan boşluk kalır, crop olmaz. */
+                transform: scale(0.75);
                 transform-origin: center center;
                 width: 100%;
                 height: 100%;
@@ -93,11 +101,18 @@
         }
 
         /* 4. BLUR LAYER */
+        /* Blur da arka plan gibi her yeri kaplamalı */
         #blur-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            height: 100lvh; /* Arka planla aynı mantık */
             z-index: 5;
             backdrop-filter: blur(0px);
             -webkit-backdrop-filter: blur(0px);
-            /* Transition kaldırıldı, scroll ile anlık senkronize olacak */
+            pointer-events: none;
         }
 
         /* TEXT JUSTIFY + CENTER LAST */
@@ -140,17 +155,17 @@
 </head>
 <body class="w-full">
 
-    <!-- 1. GRANIM ARKA PLAN -->
-    <canvas id="granim-canvas" class="fixed-bg-layer"></canvas>
-    <div id="bg-overlay" class="fixed-bg-layer"></div>
+    <!-- 1. GRANIM ARKA PLAN (100lvh - Tam ekran kaplar) -->
+    <canvas id="granim-canvas" class="bg-layer-full"></canvas>
+    <div id="bg-overlay" class="bg-layer-full"></div>
 
-    <!-- 2. SPLINE LAYER -->
-    <div id="canvas-layer" class="fixed-bg-layer">
+    <!-- 2. SPLINE LAYER (100svh - Sabit kalır, zıplamaz) -->
+    <div id="canvas-layer">
         <spline-viewer url="https://prod.spline.design/X-xNpCt05N7o8w7p/scene.splinecode"></spline-viewer>
     </div>
 
-    <!-- 3. BLUR LAYER -->
-    <div id="blur-layer" class="fixed-bg-layer"></div>
+    <!-- 3. BLUR LAYER (100lvh - Tam ekran kaplar) -->
+    <div id="blur-layer"></div>
 
     <!-- 4. UI: SCROLL GÖSTERGESİ -->
     <div id="scroll-indicator-container" class="text-[9px] tracking-widest uppercase font-bold text-white/70 drop-shadow-md">Scroll</div>
@@ -159,19 +174,17 @@
     <div class="relative z-10 w-full" id="main-content">
         
         <!-- Boşluk Bırakıcı (İlk ekran boş) -->
-        <div class="w-full h-screen"></div>
+        <!-- Burada da 100svh kullanarak açılışta tam ekranı tutuyoruz, taşma yapmıyoruz -->
+        <div class="w-full h-[100svh]"></div>
 
         <!-- Yazı İçeriği Alanı -->
-        <!-- min-h-screen: İçerik az olsa bile en az bir ekran boyu yer kapla -->
-        <!-- flex & justify-center: İçeriği dikey ve yatay ortala -->
-        <section id="textContent" class="w-full min-h-[100dvh] flex flex-col items-center justify-center px-4 md:px-0 relative py-10 md:py-20">
+        <section id="textContent" class="w-full min-h-[100vh] flex flex-col items-center justify-center px-4 md:px-0 relative py-10 md:py-20">
             
             <div class="absolute inset-0 pointer-events-none" style="background: radial-gradient(circle at center, rgba(0,0,0,0.1) 0%, transparent 70%);"></div>
             
             <div class="max-w-xl w-full text-center reveal-element relative z-20 mix-blend-screen">
                 
                 <!-- LOGO -->
-                <!-- Mobilde margin-bottom azaltıldı (mb-4) -->
                 <div id="mainTitle" class="flex flex-col items-center justify-center mb-5 md:mb-8 w-full">
                     <img 
                         src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" 
@@ -181,11 +194,6 @@
                 </div>
 
                 <!-- METİN BLOKU -->
-                <!-- Mobil Ayarları: 
-                     text-xs (12px), 
-                     leading-5 (Satır araları sıkı), 
-                     space-y-2 (Paragraf araları sıkı) -->
-                <!-- justify-center-last class'ı eklendi -->
                 <div class="text-xs md:text-sm leading-5 md:leading-8 space-y-2 md:space-y-4 text-gray-100 font-medium drop-shadow-lg tracking-tight px-3 justify-center-last">
                     
                     <!-- BAŞLIK -->
@@ -204,7 +212,6 @@
                     <p>Not merch. Not lifestyle items. A proposal for living with culture.</p>
 
                     <!-- SLOGANLAR -->
-                    <!-- Mobilde padding-top azaltıldı (pt-3) -->
                     <div class="pt-3 md:pt-5 font-bold tracking-wide space-y-1 text-white/90 text-center">
                         <p>COLLECT IDEAS, NOT OBJECTS. USE ART DAILY.</p>
                         <p>LIVE THOUGHTFULLY.</p>
@@ -266,7 +273,7 @@
         document.querySelectorAll('.reveal-element').forEach(el => observer.observe(el));
 
         // =========================================================
-        // 3. SCROLL EFEKTLERİ (YENİ BLUR MANTIĞI)
+        // 3. SCROLL EFEKTLERİ
         // =========================================================
         const scrollIndicator = document.getElementById('scroll-indicator-container');
         const blurLayer = document.getElementById('blur-layer');
@@ -274,18 +281,12 @@
 
         window.addEventListener('scroll', () => {
             const scrollY = window.scrollY;
-            
-            // Toplam scroll edilebilir alan (Sayfa boyu - Pencere boyu)
             const maxScrollHeight = document.documentElement.scrollHeight - window.innerHeight;
-            
-            // Scroll Yüzdesi (0.0 ile 1.0 arası)
             let scrollPercent = scrollY / maxScrollHeight;
             
-            // Güvenlik sınırı (1'i geçmesin)
             if (scrollPercent > 1) scrollPercent = 1;
             if (scrollPercent < 0) scrollPercent = 0;
 
-            // SCROLL INDICATOR
             if (!hasScrolled && scrollY > 50) { 
                 scrollIndicator.style.opacity = '0'; 
                 hasScrolled = true; 
@@ -294,7 +295,6 @@
                 hasScrolled = false;
             }
 
-            // BLUR UYGULAMA (Scroll %0 -> Blur 0px, Scroll %100 -> Blur 20px)
             const maxBlur = 20; 
             let blurAmount = scrollPercent * maxBlur;
             
