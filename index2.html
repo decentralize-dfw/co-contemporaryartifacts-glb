@@ -148,8 +148,9 @@
     <!-- 5. ANA İÇERİK (SCROLL EDİLEBİLİR ALAN) -->
     <div class="relative z-10 w-full" id="main-content">
         
-        <!-- Boşluk Bırakıcı (3D modelin ilk açılışta net görünmesi için) -->
-        <div class="w-full h-[75vh] md:h-screen"></div>
+        <!-- Boşluk Bırakıcı: Hem mobilde hem masaüstünde tam ekran (h-screen) -->
+        <!-- Böylece içerik "fold"un altında kalır, scroll ile gelir -->
+        <div class="w-full h-screen"></div>
 
         <!-- Yazı İçeriği -->
         <section id="textContent" class="w-full flex flex-col items-center justify-center px-4 md:px-0 relative pb-20">
