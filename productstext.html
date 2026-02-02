@@ -28,9 +28,12 @@
                 position: relative;
                 background-image: url('https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/productsbanner.png');
                 background-size: cover;
-                /* 485px/2556px = 18.97% (X Focus), 374px/748px = 50% (Y Focus) */
-                background-position: 18.97% 50%;
+                /* Banner Focus: 650/2556 = 25.43%, 450/748 = 60.16% */
+                background-position: 25.43% 60.16%;
                 background-repeat: no-repeat;
+                /* Piksel-Yüzde uyumu için tam oran (2556 / 748) */
+                aspect-ratio: 2556 / 748;
+                max-height: 80vh;
             }
 
             /* 50px Kılavuz Çizgileri - Tespiti kolaylaştırmak için */
@@ -40,18 +43,19 @@
                 inset: 0;
                 pointer-events: none;
                 background-image: 
-                    linear-gradient(to right, rgba(255, 0, 0, 0.15) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(255, 0, 0, 0.15) 1px, transparent 1px);
+                    linear-gradient(to right, rgba(255, 0, 0, 0.1) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 0, 0, 0.1) 1px, transparent 1px);
                 background-size: 50px 50px;
                 z-index: 5;
             }
             
-            /* Logo Merkezi Konumlandırma */
+            /* Logo Merkezi Konumlandırma (650px, 450px noktası) */
             .logo-desktop-shift {
-                transform: translate(180px, 0); /* Sağa kaydırma korundu, merkezden konumlanması için flex kullanıldı */
-                display: flex;
-                justify-content: center;
-                align-items: center;
+                position: absolute;
+                left: 25.43%;
+                top: 60.16%;
+                transform: translate(-50%, -50%);
+                z-index: 10;
             }
         }
 
@@ -65,7 +69,7 @@
             --grid-gap-mobile: 1rem;
 
             --page-padding-desktop: 4rem;
-            --page-padding-mobile: 1rem;
+            --page-padding-mobile: 1.5rem;
         }
 
         /* Tipografi & Hassas Ayarlar */
@@ -94,7 +98,7 @@
             } 
         }
 
-        /* No-Crop Kare Alan */
+        /* No-Crop Kare Alan - Background & Border Removed */
         .aspect-square-container {
             width: 100%;
             aspect-ratio: 1 / 1;
@@ -106,8 +110,8 @@
         }
 
         .fit-image {
-            width: 80%;
-            height: 80%;
+            width: 80%; /* %80 Scale */
+            height: 80%; /* %80 Scale */
             object-fit: contain; 
         }
 
@@ -116,7 +120,7 @@
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* Modal Container */
+        /* Modal Container (FULLSCREEN) */
         #detail-modal-overlay {
             position: fixed;
             inset: 0;
@@ -143,12 +147,14 @@
             }
         }
 
+        /* Panel Stilleri (Transparan & Blurlu) */
         .glass-panel {
             background-color: rgba(255, 255, 255, 0.65);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
 
+        /* Image Scale %80 (Modal) */
         .image-container-scale {
             width: 80%;
             height: 80%;
@@ -200,6 +206,7 @@
             color: #9ca3af; 
         }
 
+        /* Grid Fade Animation */
         .grid-fade-out { opacity: 0; }
         .grid-fade-in { opacity: 1; }
     </style>
@@ -211,19 +218,22 @@
     </div>
 
     <!-- Header Section -->
-    <div class="header-bg w-full border-b border-gray-100">
-        <div class="max-w-[2400px] mx-auto">
-            <header class="flex flex-col lg:flex-row items-start justify-between px-4 lg:px-[var(--page-padding-desktop)] pt-16 pb-20 gap-8 relative z-10">
-                <!-- Logo Area (Left) -->
-                <div class="w-full lg:w-[30%] flex flex-col items-center lg:items-start justify-center logo-desktop-shift">
-                    <!-- GIF Merkeze Hizalı -->
-                    <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-V5.gif" alt="Logo Animated" class="h-48 lg:h-64 w-auto object-contain origin-center">
-                </div>
+    <div class="header-bg w-full border-b border-gray-100 overflow-hidden">
+        <div class="max-w-[2400px] h-full mx-auto relative">
+            
+            <!-- Absolute Logo (Desktop only shift) -->
+            <div class="logo-desktop-shift flex flex-col items-center justify-center pt-8 lg:pt-0">
+                <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-V5.gif" alt="Logo Animated" class="h-44 md:h-52 lg:h-64 w-auto object-contain">
+            </div>
+
+            <!-- Content Area (Relative for layering) -->
+            <header class="flex flex-col lg:flex-row items-start justify-end px-4 lg:px-[var(--page-padding-desktop)] pt-16 pb-20 gap-8 h-full relative z-20">
+                <!-- Empty div to push text to the right on Desktop -->
+                <div class="hidden lg:block lg:w-[35%] pointer-events-none"></div>
 
                 <!-- Title & Description (Right 60%) -->
                 <div class="w-full lg:w-[60%] flex flex-col text-center lg:text-left lg:pr-0">
-                    <!-- Mobile centered title -->
-                    <h1 class="font-header text-[11px] tracking-[0.5em] uppercase mb-6 text-black text-center lg:text-left w-full">Contemporary Artifacts</h1>
+                    <h1 class="font-header text-[11px] tracking-[0.5em] uppercase mb-6 text-black w-full text-center lg:text-left">Contemporary Artifacts</h1>
                     
                     <!-- Information Toggle (Tablet & Mobile) -->
                     <div class="lg:hidden mb-4 flex justify-center">
@@ -247,7 +257,7 @@
             <div id="filter-wrapper" class="flex flex-wrap items-center gap-6 justify-center lg:justify-start">
                 <span class="font-header text-[9px] uppercase tracking-widest text-gray-400">Category:</span>
                 <div id="filter-list" class="flex flex-wrap items-center gap-4">
-                    <!-- Dinamik Filtreler -->
+                    <!-- Dynamic Filters -->
                 </div>
             </div>
         </div>
