@@ -19,17 +19,30 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Tipografi */
+        /* Tipografi & Hassas Ayarlar */
         .font-header { font-family: 'Capriola', sans-serif; }
-        .font-body { font-family: 'Space Mono', monospace; }
+        .font-body { 
+            font-family: 'Space Mono', monospace; 
+            letter-spacing: -0.2px;
+            text-align: justify;
+            text-align-last: left;
+            line-height: 1.4;
+        }
 
         /* Grid Ayarları */
         :root {
-            --grid-cols-desktop: 4;
-            --grid-cols-tablet: 2;
-            --grid-cols-mobile: 1;
-            --grid-gap: 3rem;
-            --page-padding: 3rem;
+            --grid-cols-desktop: 6;
+            --grid-cols-tablet: 4;
+            --grid-cols-mobile: 2; /* Mobilde ikili grid */
+            --grid-gap: 8rem;
+            --page-padding: 8rem;
+        }
+
+        @media (min-width: 1024px) {
+            :root {
+                --grid-gap: 3rem;
+                --page-padding: 3.5rem;
+            }
         }
 
         .dynamic-grid {
@@ -60,7 +73,7 @@
         }
 
         #loading-overlay {
-            position: fixed; inset: 0; background: white; z-index: 9999;
+            position: fixed; inset: 0; background: white; z-index: 10000;
             display: flex; align-items: center; justify-content: center;
         }
 
@@ -71,8 +84,9 @@
             background-color: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            z-index: 50;
+            z-index: 1000;
             display: none;
+            overflow: hidden;
         }
 
         #detail-modal {
@@ -86,6 +100,12 @@
         @media (max-width: 767px) {
             #detail-modal {
                 flex-direction: column;
+                overflow-y: auto;
+            }
+            .mobile-info-toggle {
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
             }
         }
 
@@ -108,6 +128,15 @@
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #000; }
+
+        /* Header Parametrik Mobil */
+        .mobile-header-square {
+            min-height: 30vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -119,15 +148,23 @@
     <!-- Header Section -->
     <header class="flex flex-col md:flex-row items-center justify-between px-8 md:px-12 pt-12 pb-16 border-b border-gray-100 gap-8">
         <!-- Logo Area (Left) -->
-        <div class="w-full md:w-[30%] flex flex-col items-center justify-center space-y-4">
-            <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-V5.gif" alt="Logo Animated" class="h-24 w-auto object-contain">
-            <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" alt="Logo Text" class="h-6 w-auto object-contain">
+        <div class="w-full md:w-[35%] mobile-header-square space-y-6">
+            <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/animated-logo-V5.gif" alt="Logo Animated" class="h-32 md:h-40 w-auto object-contain">
+            <img src="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/logo_digital%20sculpture-text2.png" alt="Logo Text" class="h-10 md:h-12 w-auto object-contain">
         </div>
 
         <!-- Title & Description (Right 60%) -->
         <div class="w-full md:w-[60%] md:pr-[10%] flex flex-col text-center md:text-left">
             <h1 class="font-header text-[12px] tracking-[0.5em] uppercase mb-4 text-black">Contemporary Artifacts</h1>
-            <p id="header-description" class="font-body text-[9pt] leading-relaxed text-gray-500 whitespace-pre-wrap"></p>
+            
+            <!-- Mobile Information Toggle -->
+            <div class="md:hidden mb-4">
+                <button onclick="toggleMobileInfo()" class="font-body text-[10px] uppercase tracking-widest border border-black px-4 py-2 hover:bg-black hover:text-white transition-all">
+                    Information <span id="info-icon">+</span>
+                </button>
+            </div>
+            
+            <p id="header-description" class="hidden md:block font-body text-[8.5pt] text-gray-500 whitespace-pre-wrap transition-all duration-300"></p>
         </div>
     </header>
 
@@ -135,45 +172,46 @@
 
     <!-- Modal Overlay and Fullscreen Container -->
     <div id="detail-modal-overlay">
-        <button id="close-modal" class="absolute top-8 left-8 z-[70] p-2 hover:bg-black hover:text-white transition-all rounded-full bg-white/90 border border-gray-100 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        <button id="close-modal" class="absolute top-6 left-6 md:top-8 md:left-8 z-[1100] p-2 hover:bg-black hover:text-white transition-all rounded-full bg-white/90 border border-gray-100 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
         <div id="detail-modal">
             <!-- Left: Media Panel -->
-            <div class="relative w-full md:w-1/2 h-1/2 md:h-full glass-panel flex items-center justify-center overflow-hidden border-r border-gray-200/20">
+            <div class="relative w-full md:w-1/2 h-1/2 md:h-full glass-panel flex items-center justify-center overflow-hidden border-b md:border-b-0 md:border-r border-gray-200/20">
                 <div class="image-container-scale">
                     <img id="modal-image" src="" alt="" class="fit-image transition-opacity duration-300">
                 </div>
-                <div id="scene-container" class="hidden absolute inset-0"></div>
             </div>
 
             <!-- Right: Info Panel -->
             <div id="modal-info-scroll" class="w-full md:w-1/2 h-1/2 md:h-full overflow-y-auto glass-panel">
-                <div id="modal-details" class="max-w-xl mx-auto p-8 md:p-24 space-y-12">
+                <div id="modal-details" class="max-w-xl mx-auto p-8 md:p-24 space-y-10">
+                    <!-- JS Inject -->
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-            }
-        }
-    </script>
-
     <script type="module">
-        import * as THREE from 'three';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-
         const SHEET_ID = '1NjQC4XOzizmreaxMwL3J7OSey-aopUw7RVVrM0g5hG0';
         const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
         let artifacts = [];
-        let currentArtifact = null;
+        let isMobileInfoOpen = false;
+
+        window.toggleMobileInfo = function() {
+            const desc = document.getElementById('header-description');
+            const icon = document.getElementById('info-icon');
+            isMobileInfoOpen = !isMobileInfoOpen;
+            if (isMobileInfoOpen) {
+                desc.classList.remove('hidden');
+                icon.innerText = '-';
+            } else {
+                desc.classList.add('hidden');
+                icon.innerText = '+';
+            }
+        };
         
         async function fetchSheetData() {
             try {
@@ -182,12 +220,10 @@
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
                 
-                // 1. HEADER DESCRIPTION (C1 hücresi: row[0], col[2])
                 if (rows[0] && rows[0].c[2]) {
                     document.getElementById('header-description').innerText = rows[0].c[2].v;
                 }
 
-                // 2. ARTIFACTS LIST (Drop Code'a göre filtrele)
                 artifacts = rows.map(row => {
                     const c = row.c;
                     const val = (idx) => {
@@ -213,7 +249,7 @@
                         description: val(18),
                         artistBio: val(23)
                     };
-                }).filter(i => i.dropCode.includes("CA_"));
+                }).filter(i => i.dropCode && i.dropCode.includes("CA_"));
 
                 renderGrid();
                 document.getElementById('loading-overlay').style.display = 'none';
@@ -224,16 +260,16 @@
             const grid = document.getElementById('catalog-grid');
             grid.innerHTML = artifacts.map((item, i) => `
                 <div onclick="window.openDetail(${i})" class="cursor-pointer group flex flex-col h-full">
-                    <div class="aspect-square-container mb-5 border border-gray-50 bg-[#fdfdfd]">
-                        <img src="${item.thumbnail}" loading="lazy" class="fit-image transition-transform duration-700 ease-out group-hover:scale-105">
+                    <div class="aspect-square-container mb-4 border border-gray-50 bg-[#fdfdfd]">
+                        <img src="${item.thumbnail}" loading="lazy" class="fit-image transition-opacity duration-300">
                     </div>
                     <div class="flex flex-col space-y-1">
-                        <span class="font-header font-bold text-[10pt] uppercase tracking-wide text-black leading-tight">${item.artist}</span>
-                        <span class="font-body text-[9pt] text-gray-500 font-light leading-snug">${item.artworkName}</span>
-                        <div class="font-body text-[8pt] text-gray-400 italic flex flex-col space-y-0.5">
+                        <span class="font-header font-bold text-[9pt] uppercase tracking-wide text-black leading-tight">${item.artist}</span>
+                        <span class="font-body text-[8.5pt] text-gray-500 font-light leading-snug">${item.artworkName}</span>
+                        <div class="font-body text-[7.5pt] text-gray-400 italic flex flex-col space-y-0.5">
                             ${item.productType ? `<span>${item.productType}</span>` : ''}
                             ${item.dimensions ? `<span>${item.dimensions}</span>` : ''}
-                            ${item.price ? `<span class="font-body text-[8pt] text-black not-italic font-normal mt-1">${item.price}</span>` : ''}
+                            ${item.price ? `<span class="font-body text-[7.5pt] text-black not-italic font-normal mt-1">${item.price}</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -241,7 +277,7 @@
         }
 
         window.openDetail = function(index) {
-            currentArtifact = artifacts[index];
+            const currentArtifact = artifacts[index];
             const overlay = document.getElementById('detail-modal-overlay');
             const modalImage = document.getElementById('modal-image');
             const scrollContainer = document.getElementById('modal-info-scroll');
@@ -251,31 +287,31 @@
 
             document.getElementById('modal-details').innerHTML = `
                 <div class="space-y-1 mb-8">
-                    <div class="font-body text-[8px] uppercase tracking-[0.4em] text-gray-300">${currentArtifact.dropCode}</div>
-                    <h2 class="font-header text-[22pt] font-bold uppercase leading-tight tracking-tighter">${currentArtifact.artist}</h2>
-                    <h3 class="font-body text-[21pt] text-gray-400 italic font-light lowercase leading-tight">${currentArtifact.artworkName}</h3>
+                    <div class="font-body text-[8px] uppercase tracking-[0.4em] text-gray-300 border-none">${currentArtifact.dropCode}</div>
+                    <h2 class="font-header text-[20pt] font-bold uppercase leading-tight tracking-tighter">${currentArtifact.artist}</h2>
+                    <h3 class="font-body text-[18pt] text-gray-400 italic font-light lowercase leading-tight">${currentArtifact.artworkName}</h3>
                 </div>
 
                 <div class="grid grid-cols-2 gap-y-6 gap-x-8 border-y border-gray-200/50 py-8">
-                    ${currentArtifact.category ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Category</span><span class="font-body text-[10px] italic">${currentArtifact.category}</span></div>` : ''}
-                    ${currentArtifact.productType ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Product Type</span><span class="font-body text-[10px] italic">${currentArtifact.productType}</span></div>` : ''}
-                    ${currentArtifact.color ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Color</span><span class="font-body text-[10px] italic">${currentArtifact.color}</span></div>` : ''}
-                    ${currentArtifact.material ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Material</span><span class="font-body text-[10px] italic">${currentArtifact.material}</span></div>` : ''}
-                    ${currentArtifact.edition ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Edition</span><span class="font-body text-[10px] italic">${currentArtifact.edition}</span></div>` : ''}
-                    ${currentArtifact.dimensions ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Dimension (WxDxH)</span><span class="font-body text-[10px] italic">${currentArtifact.dimensions}</span></div>` : ''}
+                    ${currentArtifact.category ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Category</span><span class="font-body text-[9pt] italic">${currentArtifact.category}</span></div>` : ''}
+                    ${currentArtifact.productType ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Product Type</span><span class="font-body text-[9pt] italic">${currentArtifact.productType}</span></div>` : ''}
+                    ${currentArtifact.color ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Color</span><span class="font-body text-[9pt] italic">${currentArtifact.color}</span></div>` : ''}
+                    ${currentArtifact.material ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Material</span><span class="font-body text-[9pt] italic">${currentArtifact.material}</span></div>` : ''}
+                    ${currentArtifact.edition ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Edition</span><span class="font-body text-[9pt] italic">${currentArtifact.edition}</span></div>` : ''}
+                    ${currentArtifact.dimensions ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">Dimension (WxDxH)</span><span class="font-body text-[9pt] italic">${currentArtifact.dimensions}</span></div>` : ''}
                 </div>
 
                 ${currentArtifact.description ? `
                 <div class="space-y-4">
                     <h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-900">Description</h4>
-                    <p class="font-body text-[10px] leading-relaxed text-gray-600 italic text-justify">${currentArtifact.description}</p>
+                    <p class="font-body text-[9pt] text-gray-600 italic">${currentArtifact.description}</p>
                 </div>` : ''}
 
                 ${currentArtifact.artistBio ? `
                 <div class="space-y-4 pt-4 border-t border-gray-200/50">
                     <h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-400">The Studio</h4>
-                    <p class="font-body text-[9px] leading-relaxed text-gray-400 italic text-justify tracking-widest">${currentArtifact.artistBio}</p>
-                    ${currentArtifact.website ? `<a href="${currentArtifact.website}" target="_blank" class="block font-body text-[8px] text-gray-400 underline uppercase tracking-widest hover:text-black transition-colors">Website</a>` : ''}
+                    <p class="font-body text-[8.5px] text-gray-400 italic tracking-tight">${currentArtifact.artistBio}</p>
+                    ${currentArtifact.website ? `<a href="${currentArtifact.website}" target="_blank" class="inline-block font-body text-[8px] text-gray-400 underline uppercase tracking-widest hover:text-black transition-colors">Website</a>` : ''}
                 </div>` : ''}
 
                 ${currentArtifact.price ? `
@@ -285,13 +321,19 @@
             `;
 
             overlay.style.display = 'block';
-            document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden'; // Arka plan scroll kilitlendi
         };
 
-        document.getElementById('close-modal').onclick = () => {
+        const closeBtn = document.getElementById('close-modal');
+        closeBtn.onclick = () => {
             document.getElementById('detail-modal-overlay').style.display = 'none';
-            document.body.style.overflow = 'auto';
+            document.body.style.overflow = 'auto'; // Kaydırma serbest
         };
+
+        // Esc tuşu ile kapama
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeBtn.onclick();
+        });
 
         window.onload = fetchSheetData;
     </script>
