@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contemporary Artifacts | Catalog | status co</title>
+    <title>Contemporary Artifacts | Catalog</title>
 
     <!-- FAVICON -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/weblogo.png">
@@ -385,7 +385,6 @@
                     const c = row.c;
                     const val = (idx) => (c[idx] && c[idx].v !== null && c[idx].v !== "null") ? String(c[idx].v) : "";
                     
-                    // NEW: Column AA is index 26. Defaults to 1 if empty or invalid.
                     const rawScale = (c[26] && c[26].v !== null) ? parseFloat(c[26].v) : 1;
                     const thumbScale = isNaN(rawScale) ? 1 : rawScale;
 
@@ -406,7 +405,7 @@
                         description: val(18), 
                         shortDesc: val(19), 
                         artistBio: val(23),
-                        thumbScale: thumbScale // Added to object
+                        thumbScale: thumbScale
                     };
                 }).filter(i => i.dropCode && i.dropCode.includes("CA_"));
                 
@@ -474,17 +473,20 @@
         function renderGridItem(item) {
             // SCALE: Applied as percentage of container, container uses flex-end
             const scalePct = item.thumbScale * 100;
+            // DYNAMIC CAPTION STYLE: Centered base, justified if multi-line
+            const captionStyle = "text-align: justify; text-align-last: center;";
+            
             return `
                 <div onclick="window.openDetail('${item.dropCode}')" class="cursor-pointer group flex flex-col h-full">
-                    <div class="aspect-square-container mb-3 overflow-hidden">
+                    <div class="aspect-square-container overflow-hidden" style="margin-bottom: 17px;">
                         <img src="${item.thumbnail}" loading="lazy" 
                              style="width: ${scalePct}%; height: ${scalePct}%;"
                              class="fit-image transition-opacity duration-300">
                     </div>
-                    <div class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-1">
-                        <span class="font-header font-bold text-[8.5pt] uppercase tracking-wide text-black leading-tight">${item.artist}</span>
-                        <span class="font-body text-[8pt] text-gray-500 font-light leading-snug">${item.artworkName}</span>
-                        <div class="font-body text-[7.5pt] text-gray-400 italic flex flex-col space-y-0.5">
+                    <div class="flex flex-col items-center text-center space-y-1">
+                        <span class="font-header font-bold text-[8.5pt] uppercase tracking-wide text-black leading-tight w-full" style="${captionStyle}">${item.artist}</span>
+                        <span class="font-body text-[8pt] text-gray-500 font-light leading-snug w-full" style="${captionStyle}">${item.artworkName}</span>
+                        <div class="font-body text-[7.5pt] text-gray-400 italic flex flex-col items-center space-y-0.5 w-full" style="${captionStyle}">
                             ${item.productType ? `<span>${item.productType}</span>` : ''}
                             ${item.dimensions ? `<span>${item.dimensions}</span>` : ''}
                             ${item.price ? `<span class="font-body text-[7.5pt] text-black not-italic font-normal mt-1">${item.price}</span>` : ''}
@@ -495,7 +497,6 @@
         }
 
         function renderListItem(item) {
-            // SCALE: Applied inside the thumb-inner-container
             const scalePct = item.thumbScale * 100;
             return `
                 <tr onclick="window.openDetail('${item.dropCode}')">
