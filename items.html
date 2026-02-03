@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contemporary Artifacts | Catalog  |  status co</title>
+    <title>Contemporary Artifacts | Catalog | status co</title>
 
     <!-- FAVICON -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/decentralize-dfw/co-contemporaryartifacts-glb/main/weblogo.png">
@@ -97,7 +97,6 @@
             width: 100%;
             border-collapse: collapse;
             font-family: 'Space Mono', monospace;
-            /* PARAMETRIC FONT SIZE: Aggressively shrinks with viewport width to fit 6 cols */
             font-size: clamp(3.5px, 1.8vw, 9px); 
             table-layout: fixed;
             border-left: 1px solid #e5e7eb;
@@ -110,7 +109,6 @@
 
         th {
             font-family: 'Capriola', sans-serif;
-            /* Header font slightly smaller */
             font-size: clamp(3px, 1.6vw, 8px); 
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -147,28 +145,50 @@
 
         tr:hover td { background-color: #f9fafb; cursor: pointer; }
 
-        .thumb-cell { width: 12%; text-align: center; padding: 1px; }
-        @media (min-width: 1024px) { .thumb-cell { width: 80px; padding: 0; } }
+        /* LIST VIEW THUMBNAIL WRAPPER */
+        .thumb-cell { 
+            width: 12%; 
+            padding: 2px !important;
+            height: 1px; /* Triggers fill for flex child */
+        }
+        .thumb-inner-container {
+            width: 100%;
+            height: 100%;
+            min-height: 40px; /* Ensures space on mobile */
+            display: flex;
+            align-items: flex-end; /* ALIGN TO BOTTOM */
+            justify-content: center;
+        }
+        @media (min-width: 1024px) { 
+            .thumb-cell { width: 80px; padding: 4px !important; } 
+            .thumb-inner-container { min-height: 80px; }
+        }
          
         .thumb-img { 
             width: 100%; 
-            height: auto; 
-            aspect-ratio: 1/1;
+            height: 100%; 
             object-fit: contain; 
-            margin: 0 auto; 
+            object-position: bottom; /* ENSURE ALIGNMENT */
             display: block; 
         }
-        @media (min-width: 1024px) { .thumb-img { width: 80%; height: 80%; } }
 
         /* --- UI COMPONENTS --- */
         .aspect-square-container {
             width: 100%;
             aspect-ratio: 1 / 1;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden; background-color: transparent;
+            display: flex; 
+            align-items: flex-end; /* ALIGN TO BOTTOM - GRID */
+            justify-content: center;
+            overflow: hidden; 
+            background-color: transparent;
         }
 
-        .fit-image { width: 80%; height: 80%; object-fit: contain; }
+        .fit-image { 
+            width: 80%; 
+            height: 80%; 
+            object-fit: contain; 
+            object-position: bottom; /* ENSURE ALIGNMENT */
+        }
 
         #loading-overlay {
             position: fixed; inset: 0; background: white; z-index: 10000;
@@ -215,7 +235,6 @@
 
         .filter-btn {
             font-family: 'Space Mono', monospace; 
-            /* PARAMETRIC FONT for filters */
             font-size: clamp(6px, 2vw, 10px);
             text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer;
             transition: all 0.2s ease; color: #000;
@@ -276,20 +295,16 @@
         </div>
     </div>
 
-    <!-- Control Bar (Fixed Layout) -->
+    <!-- Control Bar -->
     <div class="max-w-[2400px] mx-auto px-4 lg:px-16 pt-6 lg:pt-8 pb-4">
-        <!-- Changed to items-center for vertical alignment -->
         <div class="flex items-center justify-between gap-2 border-b border-gray-100 pb-4">
-            <!-- Filter Section - Wrapped to avoid scroll -->
             <div class="flex items-center gap-4 flex-1 min-w-0">
                 <div id="filter-wrapper" class="flex flex-wrap items-center gap-2 lg:gap-6">
-                    <!-- Always visible Category label -->
                     <span class="font-header text-[8px] lg:text-[9px] uppercase tracking-widest text-gray-300 whitespace-nowrap">Category:</span>
                     <div id="filter-list" class="flex flex-wrap items-center gap-x-3 gap-y-2"></div>
                 </div>
             </div>
 
-            <!-- View Switcher -->
             <div class="flex items-center gap-1 lg:gap-2 border border-gray-100 p-1 rounded-md bg-white shrink-0 ml-2">
                 <button onclick="setView('grid')" id="btn-grid" class="view-btn active" title="Grid View">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" class="lg:w-[18px] lg:h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
@@ -301,7 +316,7 @@
         </div>
     </div>
 
-    <!-- Main Content Area with Healthy Margin -->
+    <!-- Main Content Area -->
     <div class="max-w-[2400px] mx-auto px-4 lg:px-16 pb-20 mt-6 lg:mt-10">
         <div id="main-container" class="transition-opacity duration-300"></div>
     </div>
@@ -325,7 +340,6 @@
 
     <script type="module">
         const SHEET_ID = '1NjQC4XOzizmreaxMwL3J7OSey-aopUw7RVVrM0g5hG0';
-        // ADDED &headers=0 to ensure the very first row (C1) is fetched as data, not header
         const BASE_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&headers=0`;
 
         let artifacts = [];
@@ -363,8 +377,6 @@
                 const json = JSON.parse(text.substr(47).slice(0, -2));
                 const rows = json.table.rows;
                 
-                // With &headers=0, rows[0] is strictly the first row of the sheet.
-                // rows[0].c[2] corresponds to C1.
                 if (rows[0] && rows[0].c[2]) {
                     document.getElementById('header-description').innerText = rows[0].c[2].v;
                 }
@@ -373,6 +385,10 @@
                     const c = row.c;
                     const val = (idx) => (c[idx] && c[idx].v !== null && c[idx].v !== "null") ? String(c[idx].v) : "";
                     
+                    // NEW: Column AA is index 26. Defaults to 1 if empty or invalid.
+                    const rawScale = (c[26] && c[26].v !== null) ? parseFloat(c[26].v) : 1;
+                    const thumbScale = isNaN(rawScale) ? 1 : rawScale;
+
                     return {
                         dropCode: val(1), 
                         artist: val(2), 
@@ -389,7 +405,8 @@
                         website: val(17), 
                         description: val(18), 
                         shortDesc: val(19), 
-                        artistBio: val(23)
+                        artistBio: val(23),
+                        thumbScale: thumbScale // Added to object
                     };
                 }).filter(i => i.dropCode && i.dropCode.includes("CA_"));
                 
@@ -455,10 +472,14 @@
         }
 
         function renderGridItem(item) {
+            // SCALE: Applied as percentage of container, container uses flex-end
+            const scalePct = item.thumbScale * 100;
             return `
                 <div onclick="window.openDetail('${item.dropCode}')" class="cursor-pointer group flex flex-col h-full">
                     <div class="aspect-square-container mb-3 overflow-hidden">
-                        <img src="${item.thumbnail}" loading="lazy" class="fit-image transition-opacity duration-300">
+                        <img src="${item.thumbnail}" loading="lazy" 
+                             style="width: ${scalePct}%; height: ${scalePct}%;"
+                             class="fit-image transition-opacity duration-300">
                     </div>
                     <div class="flex flex-col items-center lg:items-start text-center lg:text-left space-y-1">
                         <span class="font-header font-bold text-[8.5pt] uppercase tracking-wide text-black leading-tight">${item.artist}</span>
@@ -474,10 +495,16 @@
         }
 
         function renderListItem(item) {
+            // SCALE: Applied inside the thumb-inner-container
+            const scalePct = item.thumbScale * 100;
             return `
                 <tr onclick="window.openDetail('${item.dropCode}')">
                     <td class="thumb-cell">
-                        <img src="${item.thumbnail}" loading="lazy" class="thumb-img">
+                        <div class="thumb-inner-container">
+                            <img src="${item.thumbnail}" loading="lazy" 
+                                 style="width: ${scalePct}%; height: ${scalePct}%;"
+                                 class="thumb-img">
+                        </div>
                     </td>
                     <td class="font-bold uppercase">${item.artist}</td>
                     <td class="italic text-gray-600">${item.artworkName}</td>
