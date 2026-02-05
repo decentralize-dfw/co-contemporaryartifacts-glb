@@ -577,7 +577,8 @@
             material: 42,       // AQ - MALZEME
             description: 20,    // U - UZUN ÜRÜN AÇIKLAMASI
             artistBio: 24,      // Y - UZUN SANATÇI BİYOGRAFİSİ
-            headerDesc: 3       // D - ANA INFORMATION YAZISI TÜRKÇE (C2 = D kolonu)
+            headerDesc: 3,      // D - ANA INFORMATION YAZISI TÜRKÇE
+            price: 43           // AR - FİYAT (TÜRKÇE)
         };
 
         // Column indices for English data (0-indexed)
@@ -589,7 +590,8 @@
             material: 8,        // I
             description: 18,    // S
             artistBio: 23,      // X
-            headerDesc: 2       // C
+            headerDesc: 2,      // C
+            price: 16           // Q - PRICE (ENGLISH)
         };
 
         // Labels for Turkish
@@ -732,7 +734,7 @@
                     thumbnail: val(13),
                     edition: val(14),
                     dimensions: val(15),
-                    price: (c[16] && c[16].f) ? c[16].f : val(16),
+                    price: (c[cols.price] && c[cols.price].f) ? c[cols.price].f : val(cols.price),
                     website: val(17),
                     description: val(cols.description),
                     shortDesc: val(19),
