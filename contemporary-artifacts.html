@@ -642,6 +642,12 @@
             return currentLang === 'tr' ? TR_LABELS : EN_LABELS;
         }
 
+        // Convert newline characters (\n) and literal "\n" strings to <br> for HTML display
+        function nl2br(str) {
+            if (!str) return str;
+            return str.replace(/\\n|\n/g, '<br>');
+        }
+
         window.toggleLanguage = function() {
             const btn = document.getElementById('lang-toggle');
             const container = document.getElementById('main-container');
@@ -708,7 +714,7 @@
             const headerRow = currentLang === 'tr' ? 1 : 0;
             const headerCol = 2; // C kolonu
             if (sheetRows[headerRow] && sheetRows[headerRow].c[headerCol] && sheetRows[headerRow].c[headerCol].v) {
-                document.getElementById('header-description').innerText = sheetRows[headerRow].c[headerCol].v;
+                document.getElementById('header-description').innerHTML = nl2br(String(sheetRows[headerRow].c[headerCol].v));
             }
 
             artifacts = sheetRows.map(row => {
@@ -830,12 +836,12 @@
                              class="fit-image transition-opacity duration-300">
                     </div>
                     <div class="flex flex-col items-center text-center space-y-1">
-                        <span class="font-header font-bold text-[8.5pt] uppercase tracking-wide text-black leading-tight w-full" style="${captionStyle}">${item.artist}</span>
-                        <span class="font-body text-[8pt] text-gray-500 font-light leading-snug w-full" style="${captionStyle}">${item.artworkName}</span>
+                        <span class="font-header font-bold text-[8.5pt] uppercase tracking-wide text-black leading-tight w-full" style="${captionStyle}">${nl2br(item.artist)}</span>
+                        <span class="font-body text-[8pt] text-gray-500 font-light leading-snug w-full" style="${captionStyle}">${nl2br(item.artworkName)}</span>
                         <div class="font-body text-[7.5pt] text-gray-400 italic flex flex-col items-center space-y-0.5 w-full" style="${captionStyle}">
-                            ${item.productType ? `<span>${item.productType}</span>` : ''}
-                            ${item.dimensions ? `<span>${item.dimensions}</span>` : ''}
-                            ${item.price ? `<span class="font-body text-[7.5pt] text-black not-italic font-normal mt-1">${item.price}</span>` : ''}
+                            ${item.productType ? `<span>${nl2br(item.productType)}</span>` : ''}
+                            ${item.dimensions ? `<span>${nl2br(item.dimensions)}</span>` : ''}
+                            ${item.price ? `<span class="font-body text-[7.5pt] text-black not-italic font-normal mt-1">${nl2br(item.price)}</span>` : ''}
                         </div>
                     </div>
                 </div>
@@ -853,13 +859,13 @@
                                  class="thumb-img">
                         </div>
                     </td>
-                    <td class="font-bold uppercase">${item.artist}</td>
-                    <td class="italic text-gray-600">${item.artworkName}</td>
-                    <td class="uppercase">${item.productType}</td>
-                    <td>${item.dimensions}</td>
-                    <td>${item.color}</td>
-                    <td class="hidden lg:table-cell text-gray-500 leading-tight text-[6pt]">${item.shortDesc}</td>
-                    <td class="font-bold text-left">${item.price}</td>
+                    <td class="font-bold uppercase">${nl2br(item.artist)}</td>
+                    <td class="italic text-gray-600">${nl2br(item.artworkName)}</td>
+                    <td class="uppercase">${nl2br(item.productType)}</td>
+                    <td>${nl2br(item.dimensions)}</td>
+                    <td>${nl2br(item.color)}</td>
+                    <td class="hidden lg:table-cell text-gray-500 leading-tight text-[6pt]">${nl2br(item.shortDesc)}</td>
+                    <td class="font-bold text-left">${nl2br(item.price)}</td>
                 </tr>
             `;
         }
@@ -881,20 +887,20 @@
             document.getElementById('modal-details').innerHTML = `
                 <div class="flex flex-col items-start space-y-4 mb-10">
                     <div class="font-body text-[8px] uppercase tracking-[0.4em] text-gray-300 border-none">${item.dropCode}</div>
-                    <h2 class="font-header text-[18pt] font-bold uppercase leading-tight tracking-tighter">${item.artist}</h2>
-                    <h3 class="font-body text-[16pt] text-gray-400 italic font-light lowercase leading-tight">${item.artworkName}</h3>
-                    ${item.price ? `<div class="font-body text-[10pt] tracking-tighter text-black italic">${item.price}</div>` : ''}
+                    <h2 class="font-header text-[18pt] font-bold uppercase leading-tight tracking-tighter">${nl2br(item.artist)}</h2>
+                    <h3 class="font-body text-[16pt] text-gray-400 italic font-light lowercase leading-tight">${nl2br(item.artworkName)}</h3>
+                    ${item.price ? `<div class="font-body text-[10pt] tracking-tighter text-black italic">${nl2br(item.price)}</div>` : ''}
                 </div>
                 <div class="grid grid-cols-2 gap-y-6 gap-x-8 border-y border-gray-200/50 py-10">
-                    ${item.category ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.category}</span><span class="font-body text-[8.5pt] italic">${item.category}</span></div>` : ''}
-                    ${item.productType ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.productType}</span><span class="font-body text-[8.5pt] italic">${item.productType}</span></div>` : ''}
-                    ${item.color ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.color}</span><span class="font-body text-[8.5pt] italic">${item.color}</span></div>` : ''}
-                    ${item.material ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.material}</span><span class="font-body text-[8.5pt] italic">${item.material}</span></div>` : ''}
-                    ${item.edition ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.edition}</span><span class="font-body text-[8.5pt] italic">${item.edition}</span></div>` : ''}
-                    ${item.dimensions ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.dimension}</span><span class="font-body text-[8.5pt] italic">${item.dimensions}</span></div>` : ''}
+                    ${item.category ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.category}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.category)}</span></div>` : ''}
+                    ${item.productType ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.productType}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.productType)}</span></div>` : ''}
+                    ${item.color ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.color}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.color)}</span></div>` : ''}
+                    ${item.material ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.material}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.material)}</span></div>` : ''}
+                    ${item.edition ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.edition}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.edition)}</span></div>` : ''}
+                    ${item.dimensions ? `<div><span class="block font-header text-[8px] text-gray-400 uppercase tracking-widest mb-1">${labels.dimension}</span><span class="font-body text-[8.5pt] italic">${nl2br(item.dimensions)}</span></div>` : ''}
                 </div>
-                ${item.description ? `<div class="space-y-4 mt-10"><h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-900">${labels.productDescription}</h4><p class="font-body text-[8.5pt] text-gray-600 italic font-light text-justify" style="text-align-last: left;">${item.description}</p></div>` : ''}
-                ${item.artistBio ? `<div class="space-y-4 mt-10 pt-10 border-t border-gray-200/50"><h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-400">${labels.about} ${item.artist}</h4><p class="font-body text-[8pt] text-gray-400 italic tracking-tight font-light text-justify" style="text-align-last: left;">${item.artistBio}</p>${item.website ? `<a href="${item.website}" target="_blank" class="inline-block font-body text-[8px] text-gray-400 underline uppercase tracking-widest hover:text-black transition-colors">Website</a>` : ''}</div>` : ''}
+                ${item.description ? `<div class="space-y-4 mt-10"><h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-900">${labels.productDescription}</h4><p class="font-body text-[8.5pt] text-gray-600 italic font-light text-justify" style="text-align-last: left;">${nl2br(item.description)}</p></div>` : ''}
+                ${item.artistBio ? `<div class="space-y-4 mt-10 pt-10 border-t border-gray-200/50"><h4 class="font-header text-[9px] uppercase font-bold tracking-[0.2em] text-gray-400">${labels.about} ${nl2br(item.artist)}</h4><p class="font-body text-[8pt] text-gray-400 italic tracking-tight font-light text-justify" style="text-align-last: left;">${nl2br(item.artistBio)}</p>${item.website ? `<a href="${item.website}" target="_blank" class="inline-block font-body text-[8px] text-gray-400 underline uppercase tracking-widest hover:text-black transition-colors">Website</a>` : ''}</div>` : ''}
             `;
             document.getElementById('detail-modal-overlay').style.display = 'block';
             document.body.style.overflow = 'hidden';
